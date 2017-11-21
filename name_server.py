@@ -4,7 +4,7 @@ import rpyc
 import uuid
 import math
 import random
-import ConfigParser
+import configparser
 import signal
 import pickle
 import sys
@@ -20,8 +20,8 @@ def int_handler(signal, frame):
 
 
 def set_conf():
-    conf = ConfigParser.ConfigParser()
-    conf.readfp(open('dfs.conf'))
+    conf = configparser.ConfigParser()
+    conf.read_file(open('dfs.conf'))
     MasterService.exposed_Master.block_size = int(conf.get('master', 'block_size'))
     MasterService.exposed_Master.replication_factor = int(conf.get('master', 'replication_factor'))
     minions = conf.get('master', 'minions').split(',')
@@ -66,7 +66,7 @@ class MasterService(rpyc.Service):
         def exposed_get_block_size(self):
             return self.__class__.block_size
 
-        def exposed_get_minions(self):
+        def exposed_get_data_servers(self):
             return self.__class__.minions
 
         def calc_num_blocks(self, size):
