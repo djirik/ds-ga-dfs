@@ -9,12 +9,14 @@ import signal
 import pickle
 import sys
 import os
+from functools import reduce
+import operator
 
 from rpyc.utils.server import ThreadedServer
 
 
 def int_handler(signal, frame):
-    pickle.dump((MasterService.exposed_Master.file_table, MasterService.exposed_Master.block_mapping),
+    pickle.dump((MasterService.Exposed_Master.file_table, MasterService.Exposed_Master.block_mapping),
                 open('fs.img', 'wb'))
     sys.exit(0)
 
@@ -22,20 +24,20 @@ def int_handler(signal, frame):
 def set_conf():
     conf = configparser.ConfigParser()
     conf.read_file(open('dfs.conf'))
-    MasterService.exposed_Master.block_size = int(conf.get('master', 'block_size'))
-    MasterService.exposed_Master.replication_factor = int(conf.get('master', 'replication_factor'))
+    MasterService.Exposed_Master.block_size = int(conf.get('master', 'block_size'))
+    MasterService.Exposed_Master.replication_factor = int(conf.get('master', 'replication_factor'))
     minions = conf.get('master', 'minions').split(',')
     for m in minions:
         id, host, port = m.split(":")
-        MasterService.exposed_Master.minions[id] = (host, port)
+        MasterService.Exposed_Master.minions[id] = (host, port)
 
     if os.path.isfile('fs.img'):
-        MasterService.exposed_Master.file_table, MasterService.exposed_Master.block_mapping = pickle.load(
+        MasterService.Exposed_Master.file_table, MasterService.Exposed_Master.block_mapping = pickle.load(
             open('fs.img', 'rb'))
 
 
 class MasterService(rpyc.Service):
-    class exposed_Master():
+    class Exposed_Master():
         file_table = {}
         block_mapping = {}
         minions = {}
@@ -57,11 +59,19 @@ class MasterService(rpyc.Service):
             blocks = self.alloc_blocks(dest, num_blocks)
             return blocks
 
-        def exposed_get_file_table_entry(self, fname):
-            if fname in self.__class__.file_table:
-                return self.__class__.file_table[fname]
-            else:
-                return None
+        def exposed_delete(self, dest):
+            pass
+
+        """Need support for nested dictionaries """
+        def exposed_get_file_table_entry(self, fname:str):
+            map_list = fname.split("\\")
+
+            return reduce(operator.getitem, map_list, self.__class__.file_table)
+
+            # if fname in self.__class__.file_table:
+            #     return self.__class__.file_table[fname]
+            # else:
+            #     return None
 
         def exposed_get_block_size(self):
             return self.__class__.block_size
