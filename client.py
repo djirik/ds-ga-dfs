@@ -17,10 +17,11 @@ def send_to_ds(block_uuid, data, data_servers):
 def read_from_ds(block_uuid, data_server):
     host, port = data_server
     con = rpyc.connect(host, port=port)
-    data_server = con.root.Minion()
+    data_server = con.root.DataServer()
     return data_server.get(block_uuid)
 
 
+# We always need to specify FULL FILE PATH to this function
 def get(name_server, file_name):
     file_table = name_server.get_file_table_entry(file_name)
     if not file_table:

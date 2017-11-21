@@ -7,8 +7,8 @@ from rpyc.utils.server import ThreadedServer
 DATA_DIR = "/tmp/minion/"
 
 
-class MinionService(rpyc.Service):
-    class exposed_Minion():
+class DataService(rpyc.Service):
+    class exposed_DataServer():
         blocks = {}
 
         def exposed_put(self, block_uuid, data, minions):
@@ -41,5 +41,5 @@ class MinionService(rpyc.Service):
 
 if __name__ == "__main__":
     if not os.path.isdir(DATA_DIR): os.mkdir(DATA_DIR)
-    t = ThreadedServer(MinionService, port=8888)
+    t = ThreadedServer(DataService, port=8888)
     t.start()
