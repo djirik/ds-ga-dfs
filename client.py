@@ -66,7 +66,7 @@ def main():
         str = input("user#:")
         cwd = ""
 
-        # Current working dir
+        # Current working dirqweq
         if str == "cwd":
             pass
 
