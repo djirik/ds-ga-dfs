@@ -48,20 +48,21 @@ def put(name_server, source, dest):
             send_to_ds(block_uuid, data, data_servers)
 
 
-def main(args):
+def main():
     """Add read/write/delete/size console commands"""
     con = rpyc.connect("localhost", port=2131)
     master = con.root.Master()
 
-    if args[0] == "get":
-        get(master, args[1])
-    elif args[0] == "put":
-        put(master, args[1], args[2])
-    else:
-        print("try 'put srcFile destFile OR get file'")
+    # if args[0] == "get":
+    #     get(master, args[1])
+    # elif args[0] == "put":
+    #     put(master, args[1], args[2])
+    # else:
+    #     print("try 'put srcFile destFile OR get file'")
 
 
     while True:
+        # Need to parse input string into array
         str = input("user#:")
         cwd = ""
 
@@ -92,4 +93,5 @@ def main(args):
             pass
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    # main(sys.argv[1:])
+    main()
