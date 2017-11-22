@@ -3,15 +3,15 @@ import sys
 import os
 
 
-def send_to_ds(block_uuid, data, data_servers):
-    print("sending: " + str(block_uuid) + str(data_servers))
+def send_to_ds(data, data_servers):
+    print("sending: " + str(data_servers))
     data_server = data_servers[0]
     data_servers = data_servers[1:]
     host, port = data_server
 
     con = rpyc.connect(host, port=port)
     data_server = con.root.Minion()
-    data_server.put(block_uuid, data, data_servers)
+    data_server.put(data, data_servers)
 
 
 def read_from_ds(block_uuid, data_server):
@@ -46,7 +46,7 @@ def put(name_server, source, dest):
             data = f.read(name_server.get_block_size())
             block_uuid = b[0]
             data_servers = [name_server.get_data_servers()[_] for _ in b[1]]
-            send_to_ds(block_uuid, data, data_servers)
+            send_to_ds(data, data_servers)
 
 
 def main():

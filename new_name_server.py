@@ -1,7 +1,4 @@
 import rpyc
-import uuid
-import math
-import random
 import configparser
 import signal
 import pickle
@@ -14,33 +11,30 @@ from rpyc.utils.server import ThreadedServer
 
 
 def int_handler(signal, frame):
-    pickle.dump((MasterService.exposed_Master.file_table, MasterService.exposed_Master.block_mapping),
-                open('fs.img', 'wb'))
+    pickle.dump(MasterService.exposed_Master.file_table, open('fs.img', 'wb'))
     sys.exit(0)
 
 
 def set_conf():
     conf = configparser.ConfigParser()
     conf.read_file(open('dfs.conf'))
-    MasterService.exposed_Master.block_size = int(conf.get('master', 'block_size'))
     MasterService.exposed_Master.replication_factor = int(conf.get('master', 'replication_factor'))
-    minions = conf.get('master', 'minions').split(',')
-    for m in minions:
+    data_servers = conf.get('master', 'minions').split(',')
+    for m in data_servers:
         id, host, port = m.split(":")
         MasterService.exposed_Master.data_servers[id] = (host, port)
 
     if os.path.isfile('fs.img'):
-        MasterService.exposed_Master.file_table, MasterService.exposed_Master.block_mapping = pickle.load(
-            open('fs.img', 'rb'))
+        MasterService.exposed_Master.file_table = pickle.load(open('fs.img', 'rb'))
 
 
 class MasterService(rpyc.Service):
     class exposed_Master():
         file_table = {}  # serialized and back using pickle
-        block_mapping = {}
+        # block_mapping = {}
         data_servers = {}    # list of data servers
 
-        block_size = 0
+        # block_size = 0
         replication_factor = 0
 
         # Requires full file path
@@ -57,12 +51,12 @@ class MasterService(rpyc.Service):
 
             #num_blocks = self.get_num_blocks(size)
             #blocks = self.alloc_blocks(fname, num_blocks)
-            return blocks
+            return True
 
         def exposed_delete(self, fname):
             # ''' Add request to data server '''
 
-            map_list = fname.split("\\")
+            map_list = fname.split("/")
             success = False
             # Possibly handle lists in different way
             try:
@@ -76,7 +70,7 @@ class MasterService(rpyc.Service):
         # """Need support for nested dictionaries """
         def exposed_get_file_table_entry(self, path: str):
             # File has to be stored as dict with single value equal to "file"
-            map_list = path.split("\\")
+            map_list = path.split("/")
             try:
                 tmp = reduce(operator.getitem, map_list, self.__class__.file_table)
             except:
@@ -88,17 +82,18 @@ class MasterService(rpyc.Service):
             # else:
             #     return None
 
-        def exposed_get_block_size(self):
-            return self.__class__.block_size
-
         def exposed_get_data_servers(self):
             return self.__class__.data_servers
 
         # def get_num_blocks(self, size):
         #     return int(math.ceil(float(size) / self.__class__.block_size))
 
-        def exists(self, file):
-            return file in self.__class__.file_table
+        def exists(self, map_list):
+            if reduce(operator.getitem, map_list, self.__class__.file_table) == "file":
+                return True
+            else:
+                return False
+
 
         # def alloc_blocks(self, dest, num):
         #     blocks = []
