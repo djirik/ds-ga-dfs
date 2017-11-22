@@ -7,37 +7,39 @@ from rpyc.utils.server import ThreadedServer
 DATA_DIR = "/tmp/minion/"
 
 
-#TODO remove all block_uuid, address files by fullpath
+# TODO remove all block_uuid, address files by full path
 class DataService(rpyc.Service):
     class exposed_DataServer():
         blocks = {}
 
-        def exposed_put(self, block_uuid, data, minions):
-            with open(DATA_DIR + str(block_uuid), 'w') as f:
+        def exposed_put(self, file_path, data, minions):
+            with open(DATA_DIR + str(file_path), 'wb') as f:
                 f.write(data)
             if len(minions) > 0:
-                self.forward(block_uuid, data, minions)
+                self.forward(file_path, data, minions)
 
-        def exposed_get(self, block_uuid):
-            block_addr = DATA_DIR + str(block_uuid)
-            if not os.path.isfile(block_addr):
+        def exposed_get(self, file_path):
+            file = DATA_DIR + str(file_path)
+            if not os.path.isfile(file):
                 return None
-            with open(block_addr) as f:
+            with open(file) as f:
                 return f.read()
 
-        def forward(self, block_uuid, data, minions):
+        # TODO: improve, no ideas
+        def forward(self, file_path, data, minions):
             print("8888: forwaring to:")
-            print(block_uuid, minions)
+            print(file_path, minions)
             minion = minions[0]
             minions = minions[1:]
             host, port = minion
 
             con = rpyc.connect(host, port=port)
             minion = con.root.Minion()
-            minion.put(block_uuid, data, minions)
+            minion.put(file_path, data, minions)
 
-        def delete_block(self, uuid):
-            pass
+        # TODO: Handle exceptions
+        def delete_file(self, file_path):
+            os.remove(file_path)
 
 
 if __name__ == "__main__":
