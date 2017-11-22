@@ -29,6 +29,7 @@ def set_conf():
 
 
 class MasterService(rpyc.Service):
+    ''' File table structure goes as following'''
     class exposed_Master():
         file_table = {}  # serialized and back using pickle
         # block_mapping = {}
@@ -39,18 +40,18 @@ class MasterService(rpyc.Service):
 
         # Requires full file path
         def exposed_read(self, fname):
-            mapping = self.__class__.file_table[fname]
-            return mapping
+            map_list = fname.split('/')
+            # TODO handle exception
+            reduce(operator.getitem, map_list, self.__class__.file_table)
+            return True
 
         # Requires full file path
-        def exposed_write(self, fname, size):
+        def exposed_write(self, fname):
             if self.exists(fname):
                 pass  # ignoring for now, will delete it later
 
             self.__class__.file_table[fname] = []
 
-            #num_blocks = self.get_num_blocks(size)
-            #blocks = self.alloc_blocks(fname, num_blocks)
             return True
 
         def exposed_delete(self, fname):
@@ -67,7 +68,17 @@ class MasterService(rpyc.Service):
                 pass
             return success
 
-        # """Need support for nested dictionaries """
+
+        def exposed_mkdir(self, path, dir_name):
+            map_list = path.split('/')
+            reduce(operator.add, map_list, )
+
+
+        def exposed_rmdir(self, path):
+            map_list = path.split('/')
+            reduce(operator.delitem, map_list, self.__class__.file_table)
+
+        # TODO Need support for nested dictionaries: Done
         def exposed_get_file_table_entry(self, path: str):
             # File has to be stored as dict with single value equal to "file"
             map_list = path.split("/")
@@ -88,7 +99,8 @@ class MasterService(rpyc.Service):
         # def get_num_blocks(self, size):
         #     return int(math.ceil(float(size) / self.__class__.block_size))
 
-        def exists(self, map_list):
+        def exists(self, file_path: str):
+            map_list = file_path.split('/')
             if reduce(operator.getitem, map_list, self.__class__.file_table) == "file":
                 return True
             else:
