@@ -23,8 +23,9 @@ class DataService(rpyc.Service):
             print(file)
             if not os.path.isfile(file):
                 return None
-            with open(file) as f:
-                return f.read()
+            f = open(file, "rb")
+            data = f.read()
+            return data
 
         # TODO: improve, no ideas
         def forward(self, file_path, data, minions):
@@ -45,5 +46,5 @@ class DataService(rpyc.Service):
 
 if __name__ == "__main__":
     if not os.path.isdir(DATA_DIR): os.mkdir(DATA_DIR)
-    t = ThreadedServer(DataService, port=8888)
+    t = ThreadedServer(DataService, port=9999)
     t.start()

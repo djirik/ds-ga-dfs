@@ -79,10 +79,15 @@ class MasterService(rpyc.Service):
 
         # Requires full file path
         # TODO handle exception
-        def exposed_mkdir(self, path, dir_name: str):
+        def exposed_mkdir(self, dir_name: str, path = ""):
             map_list = path.split('/')
             dir_to_add = {dir_name: {}}
-            reduce(operator.getitem, map_list, self.__class__.file_table).update(dir_to_add)
+
+            if path == '':
+                self.__class__.file_table.update(dir_to_add)
+            else:
+                reduce(operator.getitem, map_list, self.__class__.file_table).update(dir_to_add)
+            print(self.__class__.file_table)
 
         # Requires full file path
         # TODO handle exception

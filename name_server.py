@@ -33,7 +33,7 @@ def set_conf():
         MasterService.exposed_Master.file_table, MasterService.exposed_Master.block_mapping = pickle.load(
             open('fs.img', 'rb'))
 
-
+ 
 class MasterService(rpyc.Service):
     class exposed_Master():
         file_table = {}  # serialized and back using pickle
