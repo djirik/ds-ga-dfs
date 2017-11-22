@@ -1,7 +1,7 @@
 # ds-ga-dfs
 
 #file table structure:
-It is nested dictionary where files are defined as dictionary with single `key:value` pair with `value = 'file'` e.g.
+It is nested dictionary where files are defined as single `key:value` pair with `value = 'file'` e.g.
 `file = { 'test.txt': 'file' }`.
 
 Directory is defined as dictionary with single `key:value` pair where `value = {}` (another dictionary) e.g.

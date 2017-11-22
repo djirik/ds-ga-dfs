@@ -29,7 +29,7 @@ def set_conf():
 
 
 class MasterService(rpyc.Service):
-    ''' File table structure goes as following'''
+
     class exposed_Master():
         file_table = {}  # serialized and back using pickle
         # block_mapping = {}
@@ -69,14 +69,15 @@ class MasterService(rpyc.Service):
             return success
 
 
-        def exposed_mkdir(self, path, dir_name):
+        def exposed_mkdir(self, path, dir_name: str):
             map_list = path.split('/')
-            reduce(operator.add, map_list, )
+            dir_to_add = {dir_name: {}}
+            reduce(operator.getitem, map_list, self.__class__.file_table).update(dir_to_add)
 
 
         def exposed_rmdir(self, path):
             map_list = path.split('/')
-            reduce(operator.delitem, map_list, self.__class__.file_table)
+            reduce(operator.getitem, map_list[0:-1], self.__class__.file_table).pop('user')
 
         # TODO Need support for nested dictionaries: Done
         def exposed_get_file_table_entry(self, path: str):
