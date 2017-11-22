@@ -3,22 +3,22 @@ import sys
 import os
 
 
-def send_to_ds(block_uuid, data, data_servers):
-    print("sending: " + str(block_uuid) + str(data_servers))
+def send_to_ds(file_path, data, data_servers):
+    print("sending: " + str(data_servers))
     data_server = data_servers[0]
     data_servers = data_servers[1:]
     host, port = data_server
 
     con = rpyc.connect(host, port=port)
-    data_server = con.root.Minion()
-    data_server.put(block_uuid, data, data_servers)
+    data_server = con.root.DataServer()
+    data_server.put(file_path, data, data_servers)
 
 
-def read_from_ds(block_uuid, data_server):
+def read_from_ds(file_path, data_server):
     host, port = data_server
     con = rpyc.connect(host, port=port)
     data_server = con.root.DataServer()
-    return data_server.get(block_uuid)
+    return data_server.get(file_path)
 
 
 # We always need to specify FULL FILE PATH to this function
@@ -27,7 +27,8 @@ def get(name_server, file_name):
     if not file_table:
         print("404: file not found")
         return
-
+    # Here it cycles over different DS and checks for blocks on each one. Since we don;t
+    # have blocks anymore, this has to request full file path.
     for block in file_table:
         for m in [name_server.get_data_servers()[_] for _ in block[1]]:
             data = read_from_ds(block[0], m)
@@ -38,32 +39,29 @@ def get(name_server, file_name):
             print("No blocks found. Possibly a corrupt file")
 
 
-def put(name_server, source, dest):
-    size = os.path.getsize(source)
-    blocks = name_server.write(dest, size)
-    with open(source) as f:
-        for b in blocks:
-            data = f.read(name_server.get_block_size())
-            block_uuid = b[0]
-            data_servers = [name_server.get_data_servers()[_] for _ in b[1]]
-            send_to_ds(block_uuid, data, data_servers)
+def put(name_server, source, filename):
+    name_server.write(filename)
+    f = open(source, 'rb')
+    data = f.read()
+    # with open(source) as data:
+    data_servers = name_server.get_data_servers()
+    send_to_ds(filename, data, data_servers)
 
 
-def main():
+def main(args):
     """Add read/write/delete/size console commands"""
     con = rpyc.connect("localhost", port=2131)
     master = con.root.Master()
 
-    # if args[0] == "get":
-    #     get(master, args[1])
-    # elif args[0] == "put":
-    #     put(master, args[1], args[2])
-    # else:
-    #     print("try 'put srcFile destFile OR get file'")
-
+    if args[0] == "get":
+        get(master, args[1])
+    elif args[0] == "put":
+        put(master, args[1], args[2])
+    else:
+        print("try 'put srcFile destFile OR get file'")
 
     while True:
-        # Need to parse input string into array
+        # TODO: Need to parse input string into array
         str = input("user#:")
         cwd = ""
 
@@ -92,7 +90,9 @@ def main():
             pass
         if str == "listdir":
             pass
+        if str == "put":
+            put(master, source='test', filename='test')
 
 if __name__ == "__main__":
-    # main(sys.argv[1:])
-    main()
+    main(sys.argv[1:])
+    # main()

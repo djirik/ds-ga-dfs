@@ -55,12 +55,12 @@ class MasterService(rpyc.Service):
 
             self.__class__.file_table[fname] = []
 
-            num_blocks = self.get_num_blocks(size)
-            blocks = self.alloc_blocks(fname, num_blocks)
+            #num_blocks = self.get_num_blocks(size)
+            #blocks = self.alloc_blocks(fname, num_blocks)
             return blocks
 
         def exposed_delete(self, fname):
-            ''' Add request to data server '''
+            # ''' Add request to data server '''
 
             map_list = fname.split("\\")
             success = False
@@ -75,6 +75,7 @@ class MasterService(rpyc.Service):
 
         # """Need support for nested dictionaries """
         def exposed_get_file_table_entry(self, path: str):
+            # File has to be stored as dict with single value equal to "file"
             map_list = path.split("\\")
             try:
                 tmp = reduce(operator.getitem, map_list, self.__class__.file_table)
@@ -93,22 +94,22 @@ class MasterService(rpyc.Service):
         def exposed_get_data_servers(self):
             return self.__class__.data_servers
 
-        def get_num_blocks(self, size):
-            return int(math.ceil(float(size) / self.__class__.block_size))
+        # def get_num_blocks(self, size):
+        #     return int(math.ceil(float(size) / self.__class__.block_size))
 
         def exists(self, file):
             return file in self.__class__.file_table
 
-        def alloc_blocks(self, dest, num):
-            blocks = []
-            for i in range(0, num):
-                block_uuid = uuid.uuid1()
-                nodes_ids = random.sample(self.__class__.data_servers.keys(), self.__class__.replication_factor)
-                blocks.append((block_uuid, nodes_ids))
-
-                self.__class__.file_table[dest].append((block_uuid, nodes_ids))
-
-            return blocks
+        # def alloc_blocks(self, dest, num):
+        #     blocks = []
+        #     for i in range(0, num):
+        #         block_uuid = uuid.uuid1()
+        #         nodes_ids = random.sample(self.__class__.data_servers.keys(), self.__class__.replication_factor)
+        #         blocks.append((block_uuid, nodes_ids))
+        #
+        #         self.__class__.file_table[dest].append((block_uuid, nodes_ids))
+        #
+        #     return blocks
 
 
 if __name__ == "__main__":
