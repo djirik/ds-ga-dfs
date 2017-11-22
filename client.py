@@ -3,15 +3,15 @@ import sys
 import os
 
 
-def send_to_ds(data, data_servers):
+def send_to_ds(file_path, data, data_servers):
     print("sending: " + str(data_servers))
     data_server = data_servers[0]
     data_servers = data_servers[1:]
     host, port = data_server
 
     con = rpyc.connect(host, port=port)
-    data_server = con.root.Minion()
-    data_server.put(data, data_servers)
+    data_server = con.root.DataServer()
+    data_server.put(file_path, data, data_servers)
 
 
 def read_from_ds(file_path, data_server):
@@ -39,15 +39,13 @@ def get(name_server, file_name):
             print("No blocks found. Possibly a corrupt file")
 
 
-def put(name_server, source, dest):
-    size = os.path.getsize(source)
-    blocks = name_server.write(dest, size)
-    with open(source) as f:
-        for b in blocks:
-            data = f.read(name_server.get_block_size())
-            block_uuid = b[0]
-            data_servers = [name_server.get_data_servers()[_] for _ in b[1]]
-            send_to_ds(data, data_servers)
+def put(name_server, source, filename):
+    name_server.write(filename)
+    f = open(source, 'rb')
+    data = f.read()
+    # with open(source) as data:
+    data_servers = name_server.get_data_servers()
+    send_to_ds(filename, data, data_servers)
 
 
 def main(args):
@@ -62,36 +60,38 @@ def main(args):
     else:
         print("try 'put srcFile destFile OR get file'")
 
-    # while True:
-    #     # TODO: Need to parse input string into array
-    #     str = input("user#:")
-    #     cwd = ""
-    #
-    #     # Current working dir
-    #     if str == "cwd":
-    #         pass
-    #
-    #     # File operations
-    #     if str == "touch":
-    #         pass
-    #     if str == "ls":
-    #         pass
-    #     if str == "rm":
-    #         pass
-    #     if str == "size":
-    #         pass
-    #
-    #     # Last operation
-    #     if str == "last":
-    #         pass
-    #
-    #     # Dir operations
-    #     if str == "mkdir":
-    #         pass
-    #     if str == "rmdir":
-    #         pass
-    #     if str == "listdir":
-    #         pass
+    while True:
+        # TODO: Need to parse input string into array
+        str = input("user#:")
+        cwd = ""
+
+        # Current working dir
+        if str == "cwd":
+            pass
+
+        # File operations
+        if str == "touch":
+            pass
+        if str == "ls":
+            pass
+        if str == "rm":
+            pass
+        if str == "size":
+            pass
+
+        # Last operation
+        if str == "last":
+            pass
+
+        # Dir operations
+        if str == "mkdir":
+            pass
+        if str == "rmdir":
+            pass
+        if str == "listdir":
+            pass
+        if str == "put":
+            put(master, source='test', filename='test')
 
 if __name__ == "__main__":
     main(sys.argv[1:])

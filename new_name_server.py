@@ -10,7 +10,7 @@ import operator
 from rpyc.utils.server import ThreadedServer
 
 
-def int_handler(signal, frame):
+def int_handler(sig, frame):
     pickle.dump(MasterService.exposed_Master.file_table, open('fs.img', 'wb'))
     sys.exit(0)
 
@@ -19,13 +19,14 @@ def set_conf():
     conf = configparser.ConfigParser()
     conf.read_file(open('dfs.conf'))
     MasterService.exposed_Master.replication_factor = int(conf.get('master', 'replication_factor'))
-    data_servers = conf.get('master', 'minions').split(',')
+    data_servers = conf.get('master', 'data_servers').split(',')
     for m in data_servers:
         id, host, port = m.split(":")
-        MasterService.exposed_Master.data_servers[id] = (host, port)
+        MasterService.exposed_Master.data_servers.append((host, port))
 
     if os.path.isfile('fs.img'):
         MasterService.exposed_Master.file_table = pickle.load(open('fs.img', 'rb'))
+        print(MasterService.exposed_Master.file_table)
 
 
 class MasterService(rpyc.Service):
@@ -33,7 +34,7 @@ class MasterService(rpyc.Service):
     class exposed_Master():
         file_table = {}  # serialized and back using pickle
         # block_mapping = {}
-        data_servers = {}    # list of data servers
+        data_servers = []    # list of data servers
 
         # block_size = 0
         replication_factor = 0
@@ -47,11 +48,12 @@ class MasterService(rpyc.Service):
 
         # Requires full file path
         # TODO handle exception
-        def exposed_write(self, fname):
-            if self.exists(fname):
-                pass  # ignoring for now, will delete it later
-
-            self.__class__.file_table[fname] = []
+        def exposed_write(self, fname: str):
+            # if self.exists(fname):
+            #     pass  # ignoring for now, will delete it later
+            map_list = fname.split('/')
+            reduce(operator.getitem, map_list[0:-1], self.__class__.file_table).update({map_list[-1]: 'file'})
+            print(self.__class__.file_table)
 
             return True
 

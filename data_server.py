@@ -4,7 +4,7 @@ import os
 
 from rpyc.utils.server import ThreadedServer
 
-DATA_DIR = "/tmp/minion/"
+DATA_DIR = "files/"
 
 
 # TODO remove all block_uuid, address files by full path
@@ -20,6 +20,7 @@ class DataService(rpyc.Service):
 
         def exposed_get(self, file_path):
             file = DATA_DIR + str(file_path)
+            print(file)
             if not os.path.isfile(file):
                 return None
             with open(file) as f:
@@ -34,7 +35,7 @@ class DataService(rpyc.Service):
             host, port = minion
 
             con = rpyc.connect(host, port=port)
-            minion = con.root.Minion()
+            minion = con.root.DataServer()
             minion.put(file_path, data, minions)
 
         # TODO: Handle exceptions
