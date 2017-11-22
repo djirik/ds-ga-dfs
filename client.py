@@ -49,7 +49,7 @@ def put(name_server, source, filename):
 
 
 # TODO: Need to parse input string into array
-def main(args):
+def main():
     con = rpyc.connect("localhost", port=2131)
     master = con.root.Master()
 
