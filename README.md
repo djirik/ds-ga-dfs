@@ -1,5 +1,7 @@
 # ds-ga-dfs
 
+Distributed file system group assignment. Author: Saif, Akhmed, Roman
+
 #file table structure:
 It is nested dictionary where files are defined as single `key:value` pair with `value = 'file'` e.g.
 `file = { 'test.txt': 'file' }`.
