@@ -47,15 +47,19 @@ class MasterService(rpyc.Service):
             return True
 
         # Requires full file path
-        # TODO handle exception
+        # TODO handle exception, check for dir
         def exposed_write(self, fname: str):
             # if self.exists(fname):
             #     pass  # ignoring for now, will delete it later
             map_list = fname.split('/')
-            reduce(operator.getitem, map_list[0:-1], self.__class__.file_table).update({map_list[-1]: 'file'})
-            print(self.__class__.file_table)
+            try:
+                reduce(operator.getitem, map_list[0:-1], self.__class__.file_table).update({map_list[-1]: 'file'})
+                print(self.__class__.file_table)
+            except KeyError:
+                return "Wrong path, try mkdir first."
 
-            return True
+
+
 
         # Requires full file path
         # TODO handle exception
@@ -101,6 +105,9 @@ class MasterService(rpyc.Service):
             #     return self.__class__.file_table[fname]
             # else:
             #     return None
+
+        def exposed_cd(self, path: str):
+            self.exposed_read(path)
 
         def exposed_get_data_servers(self):
             return self.__class__.data_servers
