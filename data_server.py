@@ -9,7 +9,7 @@ DATA_DIR = "files/"
 
 # TODO remove all block_uuid, address files by full path
 class DataService(rpyc.Service):
-    class exposed_DataServer():
+    class exposed_DataServer:
         blocks = {}
 
         def exposed_put(self, file_path, data, minions):
@@ -45,6 +45,7 @@ class DataService(rpyc.Service):
 
 
 if __name__ == "__main__":
-    if not os.path.isdir(DATA_DIR): os.mkdir(DATA_DIR)
+    if not os.path.isdir(DATA_DIR):
+        os.mkdir(DATA_DIR)
     t = ThreadedServer(DataService, port=9999)
     t.start()

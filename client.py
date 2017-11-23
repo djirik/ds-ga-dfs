@@ -57,36 +57,37 @@ def main():
             print("/" + cwd)
 
         # File operations
-        if args == "touch":
-            pass
-        if args[0] == "ls":
-            print(master.read(cwd))
-        if args[0] == "rm":
-            pass
-        if args[0] == "size":
-            pass
+        try:
+            if args == "touch":
+                pass
+            if args[0] == "ls":
+                print(master.read(cwd))
+            if args[0] == "rm":
+                pass
+            if args[0] == "size":
+                pass
 
-        # Print last operation
-        if args[0] == "last":
-            print(last)
+            # Print last operation
+            if args[0] == "last":
+                print(last)
 
-        # Dir operations
-        if args[0] == "mkdir":
-            master.mkdir(args[1], cwd)
-        if args == "rmdir":
-            master.rmdir(args[1])
-        if args[0] == "get":
-            get(master, args[1])
-        if args[0] == "put":
-            if cwd == "":
-                put(master, source=args[1], filename=cwd + args[2])
-            else:
-                put(master, source=args[1], filename=cwd + "/" + args[2])
-        if args[0] == "cd":
-
-            if master.cd(args[1]):
-                cwd = args[1]
-
+            # Dir operations
+            if args[0] == "mkdir":
+                master.mkdir(args[1], cwd)
+            if args[0] == "rmdir":
+                master.rmdir(args[1])
+            if args[0] == "get":
+                get(master, args[1])
+            if args[0] == "put":
+                if cwd == "":
+                    put(master, source=args[1], filename=cwd + args[2])
+                else:
+                    put(master, source=args[1], filename=cwd + "/" + args[2])
+            if args[0] == "cd":
+                if master.cd(args[1]):
+                    cwd = args[1]
+        except IndexError:
+            print('Wrong operation arguments')
 
 if __name__ == "__main__":
     #main(sys.argv[1:])

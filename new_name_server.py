@@ -53,6 +53,7 @@ class MasterService(rpyc.Service):
 
         file_table = {}  # serialized and back using pickle
         data_servers = []    # list of data servers
+        available_data_servers = []
         replication_factor = 0
 
         # Requires full file path, can
@@ -103,9 +104,11 @@ class MasterService(rpyc.Service):
             map_list = full_path.split("/")
             obj = map_list[-1]
             if self.exists(full_path):
-                reduce(operator.delitem, map_list[0:-1], self.__class__.file_table).pop(obj)
-                for each in self.__class__.data_servers:
-                    each.delete_file(obj)
+
+                tmp = reduce(operator.delitem, map_list[0:-1], self.__class__.file_table).pop(obj)
+                # for each in self.__class__.data_servers:
+                #     each.delete_file(obj)
+                print(tmp)
                 return True
             else:
                 return False
@@ -187,9 +190,13 @@ class MasterService(rpyc.Service):
         #
         #     return blocks
 
+        def get_available_ds(self, data_servers):
+            for each in data_servers:
+                each.ping()
 
 if __name__ == "__main__":
     set_conf()
     signal.signal(signal.SIGINT, int_handler)
+    signal.signal(signal.SIGTERM, int_handler)
     t = ThreadedServer(MasterService, port=2131)
     t.start()
