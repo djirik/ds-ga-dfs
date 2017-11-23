@@ -52,8 +52,8 @@ class MasterService(rpyc.Service):
         """
 
         file_table = {}  # serialized and back using pickle
-        data_servers = []    # list of data servers
-        available_data_servers = []
+        data_servers = []    # list of all data servers
+        available_data_servers = []  # list of available data servers
         replication_factor = 0
 
         # Requires full file path, can
@@ -155,7 +155,7 @@ class MasterService(rpyc.Service):
             return self.exists(path)
 
         def exposed_get_data_servers(self):
-            return self.__class__.data_servers
+            return self.get_available_ds()
 
         # Requires full file path
         def exists(self, path='') -> bool:
@@ -178,21 +178,18 @@ class MasterService(rpyc.Service):
                 except KeyError:
                     return False
 
-        # No chunks functionality
-        # def alloc_blocks(self, dest, num):
-        #     blocks = []
-        #     for i in range(0, num):
-        #         block_uuid = uuid.uuid1()
-        #         nodes_ids = random.sample(self.__class__.data_servers.keys(), self.__class__.replication_factor)
-        #         blocks.append((block_uuid, nodes_ids))
-        #
-        #         self.__class__.file_table[dest].append((block_uuid, nodes_ids))
-        #
-        #     return blocks
-
-        def get_available_ds(self, data_servers):
+        def get_available_ds(self, data_servers) -> Union[list, None]:
+            res = []
             for each in data_servers:
-                each.ping()
+                con = rpyc.connect(each[0], each[1])
+                ds = con.root.DataServer()
+                if rpyc.timed(ds.ping(), 1):
+                    res.append(each)
+            if len(res) == 0:
+                return None
+            else:
+                return res
+
 
 if __name__ == "__main__":
     set_conf()

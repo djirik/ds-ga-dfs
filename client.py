@@ -21,14 +21,11 @@ def read_from_ds(file_path, data_server):
     return data_server.get(file_path)
 
 
+# TODO: write data to disk
 def get(name_server, filename):
     if name_server.read(filename):
         a = read_from_ds(filename, name_server.get_data_servers()[0])
         print(a)
-
-        # with open(source) as data:
-        #data_servers = name_server.get_data_servers()
-        #send_to_ds(filename, data, data_servers)
 
 
 def put(name_server, source, filename):
@@ -41,6 +38,7 @@ def put(name_server, source, filename):
     else:
         print('Wrong or non-existing path')
 
+
 # TODO: Need to parse input string into array
 def main():
     con = rpyc.connect("localhost", port=2131)
@@ -52,7 +50,7 @@ def main():
         str = input("user@" + cwd + "#: ")
         args = str.split(' ')
 
-        # Current working dirqweq
+        # Current working dir
         if args[0] == "cwd":
             print("/" + cwd)
 

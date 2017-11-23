@@ -1,8 +1,8 @@
 import rpyc
-import uuid
 import os
 
 from rpyc.utils.server import ThreadedServer
+
 
 DATA_DIR = "files/"
 
@@ -10,6 +10,7 @@ DATA_DIR = "files/"
 # TODO remove all block_uuid, address files by full path
 class DataService(rpyc.Service):
     class exposed_DataServer:
+
         blocks = {}
 
         def exposed_put(self, file_path, data, minions):
@@ -43,6 +44,8 @@ class DataService(rpyc.Service):
         def exposed_delete_file(self, file_path):
             os.remove(file_path)
 
+        def exposed_ping(self):
+            return True
 
 if __name__ == "__main__":
     if not os.path.isdir(DATA_DIR):
