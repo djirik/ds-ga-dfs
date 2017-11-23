@@ -39,7 +39,7 @@ class MasterService(rpyc.Service):
         are calling these methods, e.g. you should call read() instead of exposed_read())
 
         exposed_read()              returns dict or None
-        exposed_cd()                returns dict or None
+        exposed_cd()                returns bool
 
         exposed_write()             returns bool
 
@@ -139,7 +139,7 @@ class MasterService(rpyc.Service):
             """
             return self.delete(path)
 
-        def exposed_cd(self, path: str) -> Union[dict, False]:
+        def exposed_cd(self, path: str) -> bool:
             """
             :param path: Path to cd to
             :return: Dict if dir exists
@@ -147,7 +147,8 @@ class MasterService(rpyc.Service):
             :rtype: bool
             """
             if self.exists(path):
-                return self.exposed_read(path)
+                if self.exposed_read(path) is dict:
+                    return True
             else:
                 return False
 
