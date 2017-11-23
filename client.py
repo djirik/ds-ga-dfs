@@ -21,39 +21,25 @@ def read_from_ds(file_path, data_server):
     return data_server.get(file_path)
 
 
-# We always need to specify FULL FILE PATH to this function
-# def get(name_server, file_name):
-#     file_table = name_server.get_file_table_entry(file_name)
-#     if not file_table:
-#         print("404: file not found")
-#         return
-#     # Here it cycles over different DS and checks for blocks on each one. Since we don;t
-#     # have blocks anymore, this has to request full file path.
-#     for block in file_table:
-#         for m in [name_server.get_data_servers()[_] for _ in block[1]]:
-#             data = read_from_ds(block[0], m)
-#             if data:
-#                 sys.stdout.write(data)
-#                 break
-#         else:
-#             print("No blocks found. Possibly a corrupt file")
-
 def get(name_server, filename):
     if name_server.read(filename):
         a = read_from_ds(filename, name_server.get_data_servers()[0])
         print(a)
+
         # with open(source) as data:
         #data_servers = name_server.get_data_servers()
         #send_to_ds(filename, data, data_servers)
 
-def put(name_server, source, filename):
-    name_server.write(filename)
-    f = open(source, 'rb')
-    data = f.read()
-    # with open(source) as data:
-    data_servers = name_server.get_data_servers()
-    send_to_ds(filename, data, data_servers)
 
+def put(name_server, source, filename):
+    if name_server.write(filename):
+        f = open(source, 'rb')
+        data = f.read()
+        # with open(source) as data:
+        data_servers = name_server.get_data_servers()
+        send_to_ds(filename, data, data_servers)
+    else:
+        print('Wrong or non-existing path')
 
 # TODO: Need to parse input string into array
 def main():
@@ -75,7 +61,7 @@ def main():
             pass
         if str == "ls":
             pass
-        if str == "rm":
+        if str[0] == "rm":
             pass
         if str == "size":
             pass

@@ -40,7 +40,7 @@ class DataService(rpyc.Service):
             minion.put(file_path, data, minions)
 
         # TODO: Handle exceptions
-        def delete_file(self, file_path):
+        def exposed_delete_file(self, file_path):
             os.remove(file_path)
 
 

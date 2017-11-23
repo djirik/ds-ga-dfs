@@ -1,3 +1,5 @@
+from typing import Union
+
 import rpyc
 import configparser
 import signal
@@ -31,55 +33,83 @@ def set_conf():
 
 class MasterService(rpyc.Service):
 
-    class exposed_Master():
-        file_table = {}  # serialized and back using pickle
-        # block_mapping = {}
-        data_servers = []    # list of data servers
+    class exposed_Master:
+        """
+        So far we have following public methods that can be called from anywhere: (note that exposed is omitted when you
+        are calling these methods, e.g. you should call read() instead of exposed_read())
 
-        # block_size = 0
+        exposed_read()              returns dict or None
+        exposed_cd()                returns dict or None
+
+        exposed_write()             returns bool
+
+        exposed_rm()                returns bool
+        exposed_rmdir()             returns bool
+        exposed_mkdir()             returns bool
+
+        exposed_get_data_servers()  returns list
+
+        """
+
+        file_table = {}  # serialized and back using pickle
+        data_servers = []    # list of data servers
         replication_factor = 0
 
         # Requires full file path, can
         # TODO handle exception
-        def exposed_read(self, fname):
-            map_list = fname.split('/')
-            reduce(operator.getitem, map_list, self.__class__.file_table)
-            return True
+        def exposed_read(self, path: str) -> Union[dict, None]:
+            """
+            :param path: path to the file or dir
+            :type path: str
+            :return: On success: contents of path(dictionary) On fail: None
+            """
+            if self.exists(path):
+                map_list = path.split('/')
+                return reduce(operator.getitem, map_list, self.__class__.file_table)
+            else:
+                return None
 
         # Requires full file path
-        # TODO handle exception, check for dir
-        def exposed_write(self, fname: str):
-            # if self.exists(fname):
-            #     pass  # ignoring for now, will delete it later
-            map_list = fname.split('/')
-            try:
-                reduce(operator.getitem, map_list[0:-1], self.__class__.file_table).update({map_list[-1]: 'file'})
+        # TODO handle exception
+        def exposed_write(self, full_path="") -> bool:
+            """
+            :param full_path: Path where to write to. including filename
+            :type full_path: str
+            :return: True on success, False on fail
+            :rtype: bool
+            """
+            # If fname is "" it will read contents of root directory
+            map_list = full_path.split('/')
+            file_name = map_list[-1]
+            if self.exists(reduce(operator.getitem, map_list[0:-1], self.__class__.file_table)):
+                reduce(operator.getitem, map_list[0:-1], self.__class__.file_table).update({file_name: 'file'})
                 print(self.__class__.file_table)
-            except KeyError:
-                return "Wrong path, try mkdir first."
+                return True
+            else:
+                return False
 
-
-
+        # Requires full file path
+        # TODO handle exception, add request to data servers
+        def delete(self, full_path="") -> bool:
+            #  Add request to data server : done
+            """
+            :param full_path:  Full path to the file
+            :type full_path: str
+            :returns bool:
+            """
+            map_list = full_path.split("/")
+            obj = map_list[-1]
+            if self.exists(full_path):
+                reduce(operator.delitem, map_list[0:-1], self.__class__.file_table).pop(obj)
+                for each in self.__class__.data_servers:
+                    each.delete_file(obj)
+                return True
+            else:
+                return False
 
         # Requires full file path
         # TODO handle exception
-        def exposed_delete(self, fname):
-            # ''' Add request to data server '''
-
-            map_list = fname.split("/")
-            success = False
-            # Possibly handle lists in different way
-            try:
-                reduce(operator.delitem, map_list, self.__class__.file_table)
-                success = True
-
-            except:
-                pass
-            return success
-
-        # Requires full file path
-        # TODO handle exception
-        def exposed_mkdir(self, dir_name: str, path = ""):
+        def exposed_mkdir(self, dir_name: str, path=""):
             map_list = path.split('/')
             dir_to_add = {dir_name: {}}
 
@@ -89,41 +119,56 @@ class MasterService(rpyc.Service):
                 reduce(operator.getitem, map_list, self.__class__.file_table).update(dir_to_add)
             print(self.__class__.file_table)
 
+        def exposed_rm(self, path="") -> bool:
+            """
+            :param path: Full path to file
+            :type path: str
+            :return: True on success, False on fail
+            :rtype: bool
+            """
+            return self.delete(path)
+
         # Requires full file path
         # TODO handle exception
-        def exposed_rmdir(self, path):
-            map_list = path.split('/')
-            reduce(operator.getitem, map_list[0:-1], self.__class__.file_table).pop('user')
+        def exposed_rmdir(self, path="") -> bool:
+            """
+            :type path: str
+            :param path: Full path to object to be deleted
+            :return:
+            :rtype: bool
+            """
+            return self.delete(path)
 
-        # TODO Need support for nested dictionaries: Done
-        # we don't really need this.
-        def exposed_get_file_table_entry(self, path: str):
-            # File has to be stored as dict with single value equal to "file"
-            map_list = path.split("/")
-            try:
-                tmp = reduce(operator.getitem, map_list, self.__class__.file_table)
-            except:
-                tmp = None
-
-            return tmp
-            # if fname in self.__class__.file_table:
-            #     return self.__class__.file_table[fname]
-            # else:
-            #     return None
-
-        def exposed_cd(self, path: str):
-            self.exposed_read(path)
+        def exposed_cd(self, path: str) -> Union[dict, False]:
+            """
+            :param path: Path to cd to
+            :return: Dict if dir exists
+            :rtype: dict
+            :rtype: bool
+            """
+            if self.exists(path):
+                return self.exposed_read(path)
+            else:
+                return False
 
         def exposed_get_data_servers(self):
             return self.__class__.data_servers
 
         # Requires full file path
-        # TODO handle exception
-        def exists(self, file_path: str):
-            map_list = file_path.split('/')
-            if reduce(operator.getitem, map_list, self.__class__.file_table) == "file":
-                return True
-            else:
+        def exists(self, path="") -> bool:
+            """
+            :param path: Full path to dir or file
+            :type path: str
+            :return: True of False
+            :rtype: bool
+            """
+            map_list = path.split('/')
+            try:
+                if reduce(operator.getitem, map_list, self.__class__.file_table) is dict:
+                    return True
+                else:
+                    return False
+            except KeyError:
                 return False
 
         # No chunks functionality
