@@ -46,42 +46,46 @@ def main():
     con = rpyc.connect("localhost", port=2131)
     master = con.root.Master()
     cwd = ""
+    str = ""
     while True:
-
-        str = input("user#:").split(' ')
-
-
+        last = str
+        str = input("user@" + cwd + "#: ")
+        args = str.split(' ')
 
         # Current working dirqweq
-        if str == "cwd":
-            pass
+        if args[0] == "cwd":
+            print("/" + cwd)
 
         # File operations
-        if str == "touch":
+        if args == "touch":
             pass
-        if str == "ls":
+        if args[0] == "ls":
+            print(master.read(cwd))
+        if args[0] == "rm":
             pass
-        if str[0] == "rm":
-            pass
-        if str == "size":
+        if args[0] == "size":
             pass
 
-        # Last operation
-        if str == "last":
-            pass
+        # Print last operation
+        if args[0] == "last":
+            print(last)
 
         # Dir operations
-        if str[0] == "mkdir":
-            master.mkdir(str[1], cwd)
-        if str == "rmdir":
-            pass
-        if str[0] == "get":
-            get(master, str[1])
-        if str[0] == "put":
+        if args[0] == "mkdir":
+            master.mkdir(args[1], cwd)
+        if args == "rmdir":
+            master.rmdir(args[1])
+        if args[0] == "get":
+            get(master, args[1])
+        if args[0] == "put":
             if cwd == "":
-                put(master, source=str[1], filename=cwd + str[2])
+                put(master, source=args[1], filename=cwd + args[2])
             else:
-                put(master, source=str[1], filename=cwd + "/" + str[2])
+                put(master, source=args[1], filename=cwd + "/" + args[2])
+        if args[0] == "cd":
+
+            if master.cd(args[1]):
+                cwd = args[1]
 
 
 if __name__ == "__main__":

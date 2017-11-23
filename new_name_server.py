@@ -63,11 +63,14 @@ class MasterService(rpyc.Service):
             :type path: str
             :return: On success: contents of path(dictionary) On fail: None
             """
-            if self.exists(path):
-                map_list = path.split('/')
-                return reduce(operator.getitem, map_list, self.__class__.file_table)
+            if path == '':
+                return self.__class__.file_table
             else:
-                return None
+                if self.exists(path):
+                    map_list = path.split('/')
+                    return reduce(operator.getitem, map_list, self.__class__.file_table)
+                else:
+                    return None
 
         # Requires full file path
         # TODO handle exception
@@ -146,31 +149,31 @@ class MasterService(rpyc.Service):
             :rtype: dict
             :rtype: bool
             """
-            if self.exists(path):
-                if self.exposed_read(path) is dict:
-                    return True
-            else:
-                return False
+            return self.exists(path)
 
         def exposed_get_data_servers(self):
             return self.__class__.data_servers
 
         # Requires full file path
-        def exists(self, path="") -> bool:
+        def exists(self, path='') -> bool:
             """
             :param path: Full path to dir or file
             :type path: str
             :return: True of False
             :rtype: bool
             """
-            map_list = path.split('/')
-            try:
-                if reduce(operator.getitem, map_list, self.__class__.file_table) is dict:
-                    return True
-                else:
+            if path == '':
+                return True
+            else:
+                map_list = path.split('/')
+                try:
+                    tmp = reduce(operator.getitem, map_list, self.__class__.file_table)
+                    if type(tmp) is dict:
+                        return True
+                    else:
+                        return False
+                except KeyError:
                     return False
-            except KeyError:
-                return False
 
         # No chunks functionality
         # def alloc_blocks(self, dest, num):
