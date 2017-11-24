@@ -135,15 +135,6 @@ class MasterService(rpyc.Service):
                 reduce(operator.getitem, map_list, self.__class__.file_table).update(file_to_add)
             print(self.__class__.file_table)
 
-        def exposed_rm(self, path="") -> bool:
-            """
-            :param path: Full path to file
-            :type path: str
-            :return: True on success, False on fail
-            :rtype: bool
-            """
-            return self.delete(path)
-
         # Requires full file path
         # TODO handle exception
         def exposed_rmdir(self, path="") -> bool:
