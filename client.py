@@ -56,8 +56,8 @@ def main():
 
         # File operations
         try:
-            if args == "touch":
-                pass
+            if args[0] == "touch":
+                master.touch(args[1], cwd)
             if args[0] == "ls":
                 print(master.read(cwd))
             if args[0] == "rm":

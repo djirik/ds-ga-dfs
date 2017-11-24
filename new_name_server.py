@@ -125,6 +125,16 @@ class MasterService(rpyc.Service):
                 reduce(operator.getitem, map_list, self.__class__.file_table).update(dir_to_add)
             print(self.__class__.file_table)
 
+        def exposed_touch(self, file_name: str, path=""):
+            map_list = path.split('/')
+            file_to_add = {file_name: 'file'}
+
+            if path == '':
+                self.__class__.file_table.update(file_to_add)
+            else:
+                reduce(operator.getitem, map_list, self.__class__.file_table).update(file_to_add)
+            print(self.__class__.file_table)
+
         def exposed_rm(self, path="") -> bool:
             """
             :param path: Full path to file
