@@ -68,7 +68,9 @@ class MasterService(rpyc.Service):
                 return self.__class__.file_table
             else:
                 map_list = path.split('/')
-                if self.exists(map_list):
+                path = map_list[0:-1]
+                if self.exists(path):
+                #if self.exists(map_list):  Error 
                     return reduce(operator.getitem, map_list, self.__class__.file_table)
                 else:
                     return None
