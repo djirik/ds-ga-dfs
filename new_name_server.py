@@ -67,8 +67,8 @@ class MasterService(rpyc.Service):
             if path == '':
                 return self.__class__.file_table
             else:
-                if self.exists(path):
-                    map_list = path.split('/')
+                map_list = path.split('/')
+                if self.exists(map_list):
                     return reduce(operator.getitem, map_list, self.__class__.file_table)
                 else:
                     return None
@@ -85,8 +85,10 @@ class MasterService(rpyc.Service):
             # If fname is "" it will read contents of root directory
             map_list = full_path.split('/')
             file_name = map_list[-1]
-            if self.exists(reduce(operator.getitem, map_list[0:-1], self.__class__.file_table)):
-                reduce(operator.getitem, map_list[0:-1], self.__class__.file_table).update({file_name: 'file'})
+            path = map_list[0:-1]
+
+            if self.exists(path):
+                reduce(operator.getitem, path, self.__class__.file_table).update({file_name: 'file'})
                 print(self.__class__.file_table)
                 return True
             else:
@@ -103,7 +105,7 @@ class MasterService(rpyc.Service):
             """
             map_list = full_path.split("/")
             obj = map_list[-1]
-            if self.exists(full_path):
+            if self.exists(map_list):
 
                 tmp = reduce(operator.delitem, map_list[0:-1], self.__class__.file_table).pop(obj)
                 # for each in self.__class__.data_servers:
@@ -153,25 +155,25 @@ class MasterService(rpyc.Service):
             :rtype: dict
             :rtype: bool
             """
-            return self.exists(path)
+            return self.exists(path.split('/'))
 
         def exposed_get_data_servers(self):
-            return self.get_available_ds()
+            #return self.get_available_ds(self.__class__.data_servers)
+            return self.data_servers
 
         # Requires full file path
-        def exists(self, path='') -> bool:
+        def exists(self, path: list = []) -> bool:
             """
             :param path: Full path to dir or file
-            :type path: str
+            :type path: list
             :return: True of False
             :rtype: bool
             """
-            if path == '' or path =='/':
+            if path == []:
                 return True
             else:
-                map_list = path.split('/')
                 try:
-                    tmp = reduce(operator.getitem, map_list, self.__class__.file_table)
+                    tmp = reduce(operator.getitem, path, self.__class__.file_table)
                     if type(tmp) is dict:
                         return True
                     else:
@@ -189,6 +191,7 @@ class MasterService(rpyc.Service):
             if len(res) == 0:
                 return None
             else:
+                self.available_data_servers = res
                 return res
 
 
