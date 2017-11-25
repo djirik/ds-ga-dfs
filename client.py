@@ -20,11 +20,14 @@ def read_from_ds(file_path, data_server):
     return data_server.get(file_path)
 
 
-# TODO: write data to disk
-def get(name_server, filename):
+# TODO: write data to disk -> done
+#def get(name_server, filename): add writing to file where dest is file name
+def get(name_server, filename,dest):
     if name_server.read(filename):
         a = read_from_ds(filename, name_server.get_data_servers()[0])
-        print(a)
+        #print(a)
+        x = open(dest, "wb")
+        x.write(a)
 
 
 def put(name_server, source, filename):
@@ -82,7 +85,8 @@ def main():
             if args[0] == "rmdir":
                 master.rmdir(args[1])
             if args[0] == "get":
-                get(master, args[1])
+                #get(master, args[1]) old without writing to file
+                get(master, args[1],args[2])
             if args[0] == "put":
                 if cwd == "":
                     put(master, source=args[1], filename=cwd + args[2])
