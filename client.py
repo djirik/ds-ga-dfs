@@ -8,7 +8,6 @@ def send_to_ds(file_path, data, data_servers):
     data_server = data_servers[0]
     data_servers = data_servers[1:]
     host, port = data_server
-
     con = rpyc.connect(host, port=port)
     data_server = con.root.DataServer()
     data_server.put(file_path, data, data_servers)
@@ -41,7 +40,7 @@ def put(name_server, source, filename):
 
 # TODO: Need to parse input string into array
 def main():
-    con = rpyc.connect("localhost", port=2131)
+    con = rpyc.connect("192.168.56.110", port=2131)
     master = con.root.Master()
     cwd = ""
     str = ""
@@ -68,7 +67,6 @@ def main():
             # Print last operation
             if args[0] == "last":
                 print(last)
-
             # Dir operations
             if args[0] == "mkdir":
                 master.mkdir(args[1], cwd)
@@ -83,7 +81,10 @@ def main():
                     put(master, source=args[1], filename=cwd + "/" + args[2])
             if args[0] == "cd":
                 if master.cd(args[1]):
-                    cwd = args[1]
+                    if args[1] == '/':
+                        cwd = ""
+                    else:
+                        cwd = args[1]
         except IndexError:
             print('Wrong operation arguments')
 

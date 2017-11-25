@@ -175,7 +175,7 @@ class MasterService(rpyc.Service):
             :return: True of False
             :rtype: bool
             """
-            if path == '':
+            if path == '' or path =='/':
                 return True
             else:
                 map_list = path.split('/')
