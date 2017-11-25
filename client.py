@@ -40,7 +40,13 @@ def put(name_server, source, filename):
 
 # TODO: Need to parse input string into array
 def main():
-    con = rpyc.connect("192.168.56.110", port=2131)
+    con = rpyc.connect("localhost", port=2131)
+    #con = rpyc.connect("192.168.56.110", port=2131)
+    print("""
+             ╔══╗ 
+             ╚╗╔╝
+             ╔╝(¯`v´¯)
+             ╚══`.¸.[DFS]""")
     master = con.root.Master()
     cwd = ""
     str = ""
@@ -69,7 +75,10 @@ def main():
                 print(last)
             # Dir operations
             if args[0] == "mkdir":
-                master.mkdir(args[1], cwd)
+                if args[1][0:1] == '/':
+                    print('Forbidden character!')
+                else:
+                    master.mkdir(args[1], cwd)
             if args[0] == "rmdir":
                 master.rmdir(args[1])
             if args[0] == "get":
