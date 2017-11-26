@@ -39,18 +39,21 @@ def get(name_server, filename,dest):
 
 def put(name_server, source, filename):
     #if name_server.write(filename): error if file not exist
-    if name_server.write(filename) and os.path.isfile(source):
-        f = open(source, 'rb')
-        mdate = os.path.getmtime(source)
-        data = f.read()
-        # with open(source) as data:
-        data_servers = name_server.get_data_servers()
-        if send_to_ds(filename, data, data_servers, mdate):
-            print("Successful put")
+    if os.path.isfile(source): # check if file is exist on client side
+        if name_server.write(filename):
+            f = open(source, 'rb')
+            mdate = os.path.getmtime(source)
+            data = f.read()
+            # with open(source) as data:
+            data_servers = name_server.get_data_servers()
+            if send_to_ds(filename, data, data_servers, mdate):
+                print("Successful put")
+            else:
+                print("File up to date")
         else:
-            print("File up to date")
+            print('Wrong or non-existing path')
     else:
-        print('Wrong or non-existing path')
+            print('Wrong or non-existing path')
 
 def Size(name_server, filename):
     a = File_Size_From_DS(filename, name_server.get_data_servers()[0])
@@ -93,7 +96,7 @@ def main():
                         #print(x + '  <--dir')
                         print(colored.red(x))
             if args[0] == "rm":
-                pass
+                master.rm(args[1])
             if args[0] == "size":
                 Size(master,args[1])
             # Print last operation

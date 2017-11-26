@@ -138,7 +138,6 @@ class MasterService(rpyc.Service):
             map_list = full_path.split("/")
             obj = map_list[-1]
             if self.exists(map_list):
-
                 tmp = reduce(operator.delitem, map_list[0:-1], self.__class__.file_table).pop(obj)
                 # for each in self.__class__.data_servers:
                 #     each.delete_file(obj)
@@ -179,6 +178,15 @@ class MasterService(rpyc.Service):
             :rtype: bool
             """
             return self.delete(path)
+        
+        def exposed_rm(self, path="") -> bool:
+            """
+            :type path: str
+            :param path: Full path to object to be deleted
+            :return:
+            :rtype: bool
+            """
+            return self.delete(path)
 
         def exposed_cd(self, path: str) -> bool:
             """
@@ -201,12 +209,13 @@ class MasterService(rpyc.Service):
             :return: True of False
             :rtype: bool
             """
-            if path == ['']:
+            if path == [''] or path == ['', '']: # cd 'space' and cd /
                 return True
             else:
                 try:
                     tmp = reduce(operator.getitem, path, self.__class__.file_table)
-                    if type(tmp) is dict:
+                    #if type(tmp) is dict: old used only for dir
+                    if type(tmp) is dict or tmp == "file": #check if the tmp a file or dic to delete it
                         return True
                     else:
                         return False
