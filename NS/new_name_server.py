@@ -78,7 +78,7 @@ class MasterService(rpyc.Service):
 
         # Requires full file path, can
         # TODO handle exception
-        def exposed_read(self, path: str) -> Union[dict, None]:
+        def exposed_read(self, path: str = "") -> Union[dict, None]:
             """
             :param path: path to the file or dir
             :type path: str
@@ -90,7 +90,7 @@ class MasterService(rpyc.Service):
                 map_list = path.split('/')
                 path = map_list[0:-1]
                 if self.exists(path):
-                #if self.exists(map_list):  Error 
+                    # if self.exists(map_list):  Error
                     return reduce(operator.getitem, map_list, self.__class__.file_table)
                 else:
                     return None
@@ -204,14 +204,19 @@ class MasterService(rpyc.Service):
                     return False
 
 
-
 if __name__ == "__main__":
+
     set_conf()
+    # Start polling thread
     polling = threading.Thread(target=data_polling, args=(MasterService.exposed_Master.data_servers,), name='Polling')
     polling.daemon = True
     polling.start()
+
+    # Initiate signal handlers
     signal.signal(signal.SIGINT, int_handler)
     signal.signal(signal.SIGTERM, int_handler)
+
+    # Start server
     t = ThreadedServer(MasterService, port=2131)
     t.start()
 

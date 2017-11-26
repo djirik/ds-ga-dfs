@@ -4,14 +4,16 @@ import sys
 import os
 
 
-def send_to_ds(file_path, data, data_servers):
+def send_to_ds(file_path, data, data_servers, mdate) -> bool:
     print("sending: " + str(data_servers))
     data_server = data_servers[0]
     data_servers = data_servers[1:]
+
     host, port = data_server
     con = rpyc.connect(host, port=port)
     data_server = con.root.DataServer()
-    data_server.put(file_path, data, data_servers)
+
+    return data_server.put(file_path, mdate, data, data_servers)
 
 
 def read_from_ds(file_path, data_server):
@@ -34,10 +36,14 @@ def get(name_server, filename,dest):
 def put(name_server, source, filename):
     if name_server.write(filename):
         f = open(source, 'rb')
+        mdate = os.path.getmtime(source)
         data = f.read()
         # with open(source) as data:
         data_servers = name_server.get_data_servers()
-        send_to_ds(filename, data, data_servers)
+        if send_to_ds(filename, data, data_servers, mdate):
+            print("Successful put")
+        else:
+            print("File up to date")
     else:
         print('Wrong or non-existing path')
 
