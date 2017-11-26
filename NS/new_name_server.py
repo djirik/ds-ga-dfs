@@ -20,6 +20,7 @@ def int_handler(sig, frame):
 
 
 def set_conf():
+    MasterService.exposed_Master.data_servers.clear() #clear the old conf
     conf = configparser.ConfigParser()
     conf.read_file(open('dfs.conf'))
     MasterService.exposed_Master.replication_factor = int(conf.get('master', 'replication_factor'))
@@ -34,7 +35,16 @@ def set_conf():
 
 
 def data_polling(data_servers: list):
+    with open('dfs.conf',"r") as File: #init data to check if changed
+        Init_Data = File.readlines()
     while True:
+        with open('dfs.conf',"r") as File:
+            Current_Data = File.readlines()
+        if Init_Data != Current_Data: # check if data is changed
+            with open('dfs.conf',"r") as File:
+                Init_Data = File.readlines() # reread the changed data
+            print("Config file has been changed, Reloading configuration")
+            set_conf() # calling the conf function again to update the list of DS
         MasterService.exposed_Master.available_data_servers = []
         for server in data_servers:
             try:
@@ -205,7 +215,6 @@ class MasterService(rpyc.Service):
 
 
 if __name__ == "__main__":
-
     set_conf()
     # Start polling thread
     polling = threading.Thread(target=data_polling, args=(MasterService.exposed_Master.data_servers,), name='Polling')
