@@ -68,7 +68,6 @@ class MasterService(rpyc.Service):
             try:
                 reduce(operator.delitem, map_list, self.__class__.file_table)
                 success = True
-
             except:
                 pass
             return success

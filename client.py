@@ -1,4 +1,5 @@
 import rpyc
+from clint.textui import colored
 import sys
 import os
 
@@ -70,9 +71,11 @@ def main():
                 listls = master.read(cwd)
                 for x in listls:
                     if 'file' in listls[x]:
-                        print(x + '  <--file')
+                        #print(x + '  <--file')
+                        print(colored.green(x))
                     else:
-                        print(x + '  <--dir')
+                        #print(x + '  <--dir')
+                        print(colored.red(x))
             if args[0] == "rm":
                 pass
             if args[0] == "size":
