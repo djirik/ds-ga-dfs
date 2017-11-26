@@ -7,7 +7,8 @@ from rpyc.utils.server import ThreadedServer
 DATA_DIR = "files/"
 
 
-# TODO remove all block_uuid, address files by full path
+
+
 class DataService(rpyc.Service):
     class exposed_DataServer:
 

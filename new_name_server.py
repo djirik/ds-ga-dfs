@@ -1,5 +1,6 @@
 from typing import Union
 
+import threading
 import rpyc
 import configparser
 import signal
@@ -9,6 +10,7 @@ import os
 from functools import reduce
 import operator
 
+import time
 from rpyc.utils.server import ThreadedServer
 
 
@@ -29,6 +31,24 @@ def set_conf():
     if os.path.isfile('fs.img'):
         MasterService.exposed_Master.file_table = pickle.load(open('fs.img', 'rb'))
         print(MasterService.exposed_Master.file_table)
+
+
+def data_polling(data_servers: list):
+    while True:
+        MasterService.exposed_Master.available_data_servers = []
+        for server in data_servers:
+            try:
+                conn = rpyc.connect(server[0], server[1])
+                try:
+                    conn.ping(timeout=5)
+                    MasterService.exposed_Master.available_data_servers.append(server)
+                except:
+                    pass
+
+            except ConnectionError:
+                print(str(server) + " is not responding.")
+        print("Available DS: " + str(MasterService.exposed_Master.available_data_servers))
+        time.sleep(5)
 
 
 class MasterService(rpyc.Service):
@@ -160,8 +180,8 @@ class MasterService(rpyc.Service):
             return self.exists(path.split('/'))
 
         def exposed_get_data_servers(self):
-            #return self.get_available_ds(self.__class__.data_servers)
-            return self.data_servers
+            return self.available_data_servers
+            #return self.data_servers
 
         # Requires full file path
         def exists(self, path: list = []) -> bool:
@@ -171,7 +191,7 @@ class MasterService(rpyc.Service):
             :return: True of False
             :rtype: bool
             """
-            if path == []:
+            if path == ['']:
                 return True
             else:
                 try:
@@ -183,23 +203,15 @@ class MasterService(rpyc.Service):
                 except KeyError:
                     return False
 
-        def get_available_ds(self, data_servers) -> Union[list, None]:
-            res = []
-            for each in data_servers:
-                con = rpyc.connect(each[0], each[1])
-                ds = con.root.DataServer()
-                if rpyc.timed(ds.ping(), 1):
-                    res.append(each)
-            if len(res) == 0:
-                return None
-            else:
-                self.available_data_servers = res
-                return res
 
 
 if __name__ == "__main__":
     set_conf()
+    polling = threading.Thread(target=data_polling, args=(MasterService.exposed_Master.data_servers,), name='Polling')
+    polling.daemon = True
+    polling.start()
     signal.signal(signal.SIGINT, int_handler)
     signal.signal(signal.SIGTERM, int_handler)
     t = ThreadedServer(MasterService, port=2131)
     t.start()
+

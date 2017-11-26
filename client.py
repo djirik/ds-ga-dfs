@@ -93,7 +93,7 @@ def main():
                 master.rmdir(args[1])
             if args[0] == "get":
                 #get(master, args[1]) old without writing to file
-                get(master, args[1],args[2])
+                get(master, args[1], args[2])
             if args[0] == "put":
                 if cwd == "":
                     put(master, source=args[1], filename=cwd + args[2])
