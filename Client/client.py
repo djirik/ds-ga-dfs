@@ -4,7 +4,7 @@ import sys
 import os
 
 
-def send_to_ds(file_path, data, data_servers, mdate) -> bool:
+def send_to_ds(file_path, data, data_servers, mdate):
     print("sending: " + str(data_servers))
     data_server = data_servers[0]
     data_servers = data_servers[1:]
@@ -12,8 +12,7 @@ def send_to_ds(file_path, data, data_servers, mdate) -> bool:
     host, port = data_server
     con = rpyc.connect(host, port=port)
     data_server = con.root.DataServer()
-
-    return data_server.put(file_path, mdate, data, data_servers)
+    data_server.put(file_path, mdate, data, data_servers)
 
 
 def read_from_ds(file_path, data_server):
@@ -24,8 +23,8 @@ def read_from_ds(file_path, data_server):
 
 
 # TODO: write data to disk -> done
-#def get(name_server, filename): add writing to file where dest is file name
-def get(name_server, filename,dest):
+# def get(name_server, filename): add writing to file where dest is file name
+def get(name_server, filename, dest):
     if name_server.read(filename):
         a = read_from_ds(filename, name_server.get_data_servers()[0])
         #print(a)
@@ -40,12 +39,9 @@ def put(name_server, source, filename):
         data = f.read()
         # with open(source) as data:
         data_servers = name_server.get_data_servers()
-        if send_to_ds(filename, data, data_servers, mdate):
-            print("Successful put")
-        else:
-            print("File up to date")
-    else:
-        print('Wrong or non-existing path')
+        send_to_ds(filename, data, data_servers, mdate)
+
+        #print('Wrong or non-existing path')
 
 
 # TODO: Need to parse input string into array
