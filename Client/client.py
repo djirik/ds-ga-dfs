@@ -20,6 +20,11 @@ def read_from_ds(file_path, data_server):
     data_server = con.root.DataServer()
     return data_server.get(file_path)
 
+def File_Size_From_DS(file_path, data_server):
+    host, port = data_server
+    con = rpyc.connect(host, port=port)
+    data_server = con.root.DataServer()
+    return data_server.File_Size(file_path)
 
 # TODO: write data to disk -> done
 #def get(name_server, filename): add writing to file where dest is file name
@@ -41,6 +46,9 @@ def put(name_server, source, filename):
     else:
         print('Wrong or non-existing path')
 
+def Size(name_server, filename):
+    a = File_Size_From_DS(filename, name_server.get_data_servers()[0])
+    print(a)
 
 # TODO: Need to parse input string into array
 def main():
@@ -79,7 +87,7 @@ def main():
             if args[0] == "rm":
                 pass
             if args[0] == "size":
-                pass
+                Size(master,args[1])
             # Print last operation
             if args[0] == "last":
                 print(last)

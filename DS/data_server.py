@@ -27,6 +27,17 @@ class DataService(rpyc.Service):
             data = f.read()
             return data
 
+        def exposed_File_Size(self, file_path):
+            file = DATA_DIR + str(file_path)
+            print(file)
+            if not os.path.isfile(file):
+                return None
+            Size = os.path.getsize(file)
+            for Unit in ['bytes', 'KB', 'MB', 'GB', 'TB']:
+                if Size < 1024.0:
+                    return "%3.1f %s" % (Size, Unit)
+                Size /= 1024.0
+
         # TODO: improve, no ideas
         def forward(self, file_path, data, minions):
             print("8888: forwaring to:")
