@@ -67,12 +67,16 @@ def main():
             if args[0] == "touch":
                 master.touch(args[1], cwd)
             if args[0] == "ls":
-                print(master.read(cwd))
+                listls = master.read(cwd)
+                for x in listls:
+                    if 'file' in listls[x]:
+                        print(x + '  <--file')
+                    else:
+                        print(x + '  <--dir')
             if args[0] == "rm":
                 pass
             if args[0] == "size":
                 pass
-
             # Print last operation
             if args[0] == "last":
                 print(last)
