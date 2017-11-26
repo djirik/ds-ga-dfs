@@ -100,7 +100,7 @@ class DataService(rpyc.Service):
             data = f.read()
             return data
 
-        def exposed_File_Size(self, file_path):
+        def exposed_file_size(self, file_path):
             file = DATA_DIR + str(file_path)
             print(file)
             if not os.path.isfile(file):
