@@ -30,6 +30,8 @@ class DataService(rpyc.Service):
         file_dict = {}
 
         def exposed_put(self, file_path: str, mdate, data, data_servers) -> bool:
+            #  Checks for date of file and writes file to server. Returns True on successful write. Also starts thread
+            # for forwarding file to other DS
             to_write = False
 
             if not os.path.isfile(DATA_DIR + file_path):
