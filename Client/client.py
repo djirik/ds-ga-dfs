@@ -2,6 +2,7 @@ import rpyc
 from clint.textui import colored
 import sys
 import os
+import itertools
 
 
 def send_to_ds(file_path, data, data_servers, mdate):
@@ -92,6 +93,8 @@ def main():
             if args[0] == "touch":
                 master.touch(args[1], cwd)
             if args[0] == "ls":
+                Files_List=['Files']
+                Dir_List=['Directories']
                 #listls = master.read(cwd) old, now ls ../ works fine
                 if args[1:] and args[1] == "../" and cwd != '': #check if snd arg is exist and its ../
                     listls = master.read(prev_dirc)
@@ -100,10 +103,22 @@ def main():
                 for x in listls:
                     if 'file' in listls[x]:
                         #print(x + '  <--file')
-                        print(colored.green(x))
+                        #print(colored.green(x))
+                        Files_List.append(x) # append to file list
                     else:
                         #print(x + '  <--dir')
-                        print(colored.red(x))
+                        #print(colored.red(x))
+                        Dir_List.append(x) # append to dir list
+                Max_Dir_Len= len(max(Dir_List, key=len))
+                Max_file_Len= len(max(Dir_List, key=len))
+                print('|' + Max_Dir_Len*'=' + '|' + Max_file_Len*'=' + '|')
+                l=1 # header should be printed once
+                for col,col1 in itertools.zip_longest(Dir_List,Files_List,fillvalue=''):
+                    print('|' +colored.red('{Dir_Name:{Dir_Len}}').format(Dir_Name= col,Dir_Len= Max_Dir_Len) + '|' + colored.green('{File_Name:{File_len}}').format(File_len= Max_file_Len,File_Name= col1)  + '|' )
+                    if l==1: #print the lower part of header only once
+                       print('|' + Max_Dir_Len*'=' + '|' + Max_file_Len*'=' + '|')
+                       l=2 
+                print('|' + Max_Dir_Len*'_' + '|' + Max_file_Len*'_' + '|')
             if args[0] == "rm":
                 master.rm(args[1])
             if args[0] == "size":
