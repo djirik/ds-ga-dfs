@@ -20,7 +20,7 @@ def int_handler(sig, frame):
 
 
 def set_conf():
-    MasterService.exposed_Master.data_servers.clear() #clear the old conf
+    MasterService.exposed_Master.data_servers.clear() # clear the old conf
     conf = configparser.ConfigParser()
     conf.read_file(open('dfs.conf'))
     MasterService.exposed_Master.replication_factor = int(conf.get('master', 'replication_factor'))
@@ -35,12 +35,12 @@ def set_conf():
 
 
 def data_polling(data_servers: list):
-    with open('dfs.conf',"r") as File: #init data to check if changed
+    with open('dfs.conf',"r") as File: # init data to check if changed
         Init_Data = File.readlines()
     while True:
         with open('dfs.conf',"r") as File:
             Current_Data = File.readlines()
-        if Init_Data != Current_Data: # check if data is changed
+        if Init_Data != Current_Data:  # check if data is changed
             with open('dfs.conf',"r") as File:
                 Init_Data = File.readlines() # reread the changed data
             print("Config file has been changed, Reloading configuration")
