@@ -214,6 +214,7 @@ class MasterService(rpyc.Service):
             else:
                 try:
                     tmp = reduce(operator.getitem, path, self.__class__.file_table)
+                    print(tmp)
                     #if type(tmp) is dict: old used only for dir
                     if type(tmp) is dict or tmp == "file": #check if the tmp a file or dic to delete it
                         return True

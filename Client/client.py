@@ -26,14 +26,24 @@ def File_Size_From_DS(file_path, data_server):
     data_server = con.root.DataServer()
     return data_server.File_Size(file_path)
 
+def File_Exist_DS(file_path, data_server): # testing if file is exist on DS
+    host, port = data_server
+    con = rpyc.connect(host, port=port)
+    data_server = con.root.DataServer()
+    return data_server.Check_if_exist(file_path)
+
 # TODO: write data to disk -> done
 # def get(name_server, filename): add writing to file where dest is file name
 def get(name_server, filename, dest):
-    if name_server.read(filename):
-        a = read_from_ds(filename, name_server.get_data_servers()[0])
-        #print(a)
-        x = open(dest, "wb")
-        x.write(a)
+    if File_Exist_DS(filename,name_server.get_data_servers()[0]):
+        if name_server.read(filename):
+            a = read_from_ds(filename, name_server.get_data_servers()[0])
+            #print(a)
+            x = open(dest, "wb")
+            x.write(a)
+    else:
+        print("No such file on the DS")
+
 
 
 def put(name_server, source, filename):

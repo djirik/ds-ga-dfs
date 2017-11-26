@@ -100,6 +100,11 @@ class DataService(rpyc.Service):
             data = f.read()
             return data
 
+        def exposed_Check_if_exist(self, file_path):
+            file = DATA_DIR + str(file_path)
+            print(file)
+            return os.path.isfile(file)
+        
         def exposed_file_size(self, file_path):
             file = DATA_DIR + str(file_path)
             print(file)
