@@ -129,12 +129,6 @@ class DataService(rpyc.Service):
             if os.path.isfile(DATA_DIR + file_path):
                 os.remove(file_path)
 
-        def exposed_get_size(self, file_path: str):
-            if os.path.isfile(DATA_DIR + file_path):
-                return getsize(DATA_DIR + file_path)
-            else:
-                return None
-
         def get_file_dict(self) -> dict:
             return self.file_dict
 
