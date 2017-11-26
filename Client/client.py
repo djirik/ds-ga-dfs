@@ -77,6 +77,7 @@ def main():
     master = con.root.Master()
     cwd = ""
     str = ""
+    prev_dirc = ""
     while True:
         last = str
         str = input("user@" + cwd + "#: ")
@@ -91,7 +92,11 @@ def main():
             if args[0] == "touch":
                 master.touch(args[1], cwd)
             if args[0] == "ls":
-                listls = master.read(cwd)
+                #listls = master.read(cwd) old, now ls ../ works fine
+                if args[1:] and args[1] == "../" and cwd != '': #check if snd arg is exist and its ../
+                    listls = master.read(prev_dirc)
+                else:
+                    listls = master.read(cwd)
                 for x in listls:
                     if 'file' in listls[x]:
                         #print(x + '  <--file')
@@ -123,6 +128,7 @@ def main():
                 else:
                     put(master, source=args[1], filename=cwd + "/" + args[2])
             if args[0] == "cd":
+                prev_dirc = cwd # previous dirc for ls ../
                 if master.cd(args[1]):
                     if args[1] == '/':
                         cwd = ""
