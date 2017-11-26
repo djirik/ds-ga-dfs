@@ -73,6 +73,11 @@ class DataService(rpyc.Service):
         def exposed_delete_file(self, file_path):
             os.remove(file_path)
 
+        def exposed_get_size(self, file_path: str):
+            if os.path.isfile(DATA_DIR+file_path):
+                return os.path.getsize(DATA_DIR + file_path)
+            else:
+                return None
 
 
 
