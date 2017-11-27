@@ -44,6 +44,7 @@ def update(selfport):
         ns_files = DataService.exposed_DataServer.ns_file_dict
         print(DataService.exposed_DataServer.ns_file_dict)
 
+        # Find updates for existing files
         for root, dirs, files in os.walk(DATA_DIR):
             for name in files:
                 file_path = join(root, name)
@@ -57,6 +58,9 @@ def update(selfport):
                             get_and_write(selfport)
                 except KeyError:    # if file not found on NS, delete it here.
                     os.remove(file_path)
+
+            # Find missing files here, use get_and_write(port)
+
         time.sleep(10)
 
 class DataService(rpyc.Service):
