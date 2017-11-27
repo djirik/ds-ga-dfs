@@ -1,4 +1,5 @@
 import operator
+import threading
 from functools import reduce
 import errno
 import rpyc
@@ -11,34 +12,51 @@ from rpyc.utils.server import ThreadedServer
 DATA_DIR = "files/"
 
 
-def update():
+def update(selfport):
     while True:
-        try:
-            conn = rpyc.connect('localhost', 2131)
-            ns = conn.root.Master()
-            DataService.exposed_DataServer.ns_file_dict = ns.read()
-            break
-        except ConnectionError:
-            print("NS not available")
-        time.sleep(5)
-
-    for root, dirs, files in os.walk(DATA_DIR):
-        for name in files:
-            file_path = join(root, name)
-            print("File path: " + str(file_path))
-            map_list = file_path.split('/')[1:]
-
-            ns_files = DataService.exposed_DataServer.ns_file_dict
-            print(DataService.exposed_DataServer.ns_file_dict)
+        while True:
             try:
-                tmp = reduce(operator.getitem, map_list, ns_files)
-                if tmp[0] == 'file':
-                    pass
-                #tmp = 'lol'
-                #print(tmp)
-            except KeyError:
-                os.remove(file_path)
+                conn = rpyc.connect('localhost', 2131)
+                ns = conn.root.Master()
+                DataService.exposed_DataServer.ns_file_dict = ns.read()
+                break
+            except ConnectionError:
+                print("NS not available")
+            time.sleep(5)
 
+        ns_files = DataService.exposed_DataServer.ns_file_dict
+        print(DataService.exposed_DataServer.ns_file_dict)
+
+        for root, dirs, files in os.walk(DATA_DIR):
+            for name in files:
+                file_path = join(root, name)
+                print("File path: " + str(file_path))
+                map_list = file_path.split('/')[1:]
+
+                try:
+                    tmp = reduce(operator.getitem, map_list, ns_files)  # try to retrive same file from NS records
+                    if tmp[0] == 'file':                                # if found:
+                        if tmp[1] > os.path.getmtime(file_path):        # check mod date
+                            dss = ns.get_data_servers()                 # get list of data servers
+                            for each in dss:                            #
+                                if each[1] != selfport:                 #   if the server is different from me
+
+                                    ds_conn = rpyc.connect(each[0], each[1])  # initialize connection
+                                    ds = ds_conn.root.DataService()
+                                    try:
+                                        data = ds\
+                                            .get(file_path.split('/', maxsplit=1)[1])  # try to get file from that server
+                                        open(file_path, 'rb').write(data)   #   and write
+                                        break                               # if written - break
+                                    except FileNotFoundError as err:
+                                        print(err)
+                                        print('File not found on: ' + str(each))  # other case - try other servers.
+
+
+
+                except KeyError:    # if file not found on NS, delete it here.
+                    os.remove(file_path)
+        time.sleep(10)
 
 class DataService(rpyc.Service):
     class exposed_DataServer:
@@ -126,8 +144,11 @@ class DataService(rpyc.Service):
             return self.ns_file_dict
 
 if __name__ == "__main__":
-    # update()
+    # update(int(sys.argv[1]))
     if not os.path.isdir(DATA_DIR):
         os.mkdir(DATA_DIR)
+    updater = threading.Thread(name="Updater", target=update, args=(int(sys.argv[1]),), daemon=True)
+    updater.start()
+
     t = ThreadedServer(DataService, port=int(sys.argv[1]))
     t.start()

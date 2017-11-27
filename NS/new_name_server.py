@@ -169,7 +169,8 @@ class MasterService(rpyc.Service):
 
         def exposed_touch(self, file_name: str, path=""):
             map_list = path.split('/')
-            file_to_add = {file_name: ('file', 0)}
+
+            file_to_add = {file_name: ('file', time.time())}
 
             if path == '':
                 self.__class__.file_table.update(file_to_add)
