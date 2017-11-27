@@ -147,7 +147,7 @@ class MasterService(rpyc.Service):
             map_list = full_path.split("/")
             obj = map_list[-1]
             if self.exists(map_list):
-                tmp = reduce(operator.delitem, map_list[0:-1], self.__class__.file_table).pop(obj)
+                tmp = reduce(operator.getitem, map_list[0:-1], self.__class__.file_table).pop(obj)
                 # for each in self.__class__.data_servers:
                 #     each.delete_file(obj)
                 print(tmp)
