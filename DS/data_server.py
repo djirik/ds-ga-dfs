@@ -13,6 +13,23 @@ DATA_DIR = "files/"
 
 
 def update(selfport):
+
+    def get_and_write(port):
+        dss = ns.get_data_servers()  # get list of data servers
+        for each in dss:  #
+            if each[1] != selfport:  # if the server is different from me
+
+                ds_conn = rpyc.connect(each[0], each[1])  # initialize connection
+                ds = ds_conn.root.DataService()
+                try:
+                    data = ds \
+                        .get(file_path.split('/', maxsplit=1)[1])  # try to get file from that server
+                    open(file_path, 'rb').write(data)  # and write
+                    break  # if written - break
+                except FileNotFoundError as err:
+                    print(err)
+                    print('File not found on: ' + str(each))  # other case - try other servers.
+
     while True:
         while True:
             try:
@@ -37,23 +54,7 @@ def update(selfport):
                     tmp = reduce(operator.getitem, map_list, ns_files)  # try to retrive same file from NS records
                     if tmp[0] == 'file':                                # if found:
                         if tmp[1] > os.path.getmtime(file_path):        # check mod date
-                            dss = ns.get_data_servers()                 # get list of data servers
-                            for each in dss:                            #
-                                if each[1] != selfport:                 #   if the server is different from me
-
-                                    ds_conn = rpyc.connect(each[0], each[1])  # initialize connection
-                                    ds = ds_conn.root.DataService()
-                                    try:
-                                        data = ds\
-                                            .get(file_path.split('/', maxsplit=1)[1])  # try to get file from that server
-                                        open(file_path, 'rb').write(data)   #   and write
-                                        break                               # if written - break
-                                    except FileNotFoundError as err:
-                                        print(err)
-                                        print('File not found on: ' + str(each))  # other case - try other servers.
-
-
-
+                            get_and_write(selfport)
                 except KeyError:    # if file not found on NS, delete it here.
                     os.remove(file_path)
         time.sleep(10)
