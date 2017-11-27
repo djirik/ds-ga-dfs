@@ -3,7 +3,7 @@ from clint.textui import colored
 import sys
 import os
 import itertools
-
+import time
 
 def send_to_ds(file_path, data, data_servers, mdate):
     print("sending: " + str(data_servers))
@@ -25,10 +25,10 @@ def File_Size_From_DS(file_path, data_server):
     host, port = data_server
     con = rpyc.connect(host, port=port)
     data_server = con.root.DataServer()
-    return data_server.File_Size(file_path)
+    return data_server.file_size(file_path)
 
 def File_Exist_DS(file_path, data_server): # testing if file is exist on DS
-    host, port = data_server
+    host, port = data_serverpath.getmtime(source)
     con = rpyc.connect(host, port=port)
     data_server = con.root.DataServer()
     return data_server.Check_if_exist(file_path)
@@ -61,6 +61,18 @@ def put(name_server, source, filename):
     else:
         print('Wrong or non-existing path')
 
+def touch(name_server, filename, source_data):
+    # if name_server.write(filename): error if file not exist
+    if name_server.can_write(filename):
+        mdate = time.time()
+        data_full=''
+        for data in source_data:
+            data_full = data_full + data + ' '
+        data = data_full.encode()
+        # with open(source) as data:
+        data_servers = name_server.get_data_servers()
+        send_to_ds(filename, data, data_servers, mdate)
+        name_server.write(filename)
 
 def Size(name_server, filename):
     a = File_Size_From_DS(filename, name_server.get_data_servers()[0])
@@ -71,29 +83,33 @@ def main():
     con = rpyc.connect("localhost", port=2131)
     #con = rpyc.connect("192.168.56.110", port=2131)
     print("""
-**********************************
-*************╔══╗*****************
-*************╚╗╔╝*****************
-*************╔╝(¯`v´¯)************
-*************╚══`.¸.[DFS]*********
-**********************************""")
+    **********************************
+    *************╔══╗*****************
+    *************╚╗╔╝*****************
+    *************╔╝(¯`v´¯)************
+    *************╚══`.¸.[DFS]*********
+    **********************************""")
     master = con.root.Master()
     cwd = ""
     str = ""
     prev_dirc = ""
+    full_dir=''
     while True:
         last = str
-        str = input("user@" + cwd + "#: ")
+        str = input("user@" + full_dir + "#: ")
         args = str.split(' ')
 
         # Current working dir
         if args[0] == "cwd":
-            print("/" + cwd)
+            print("/" + full_dir)
 
         # File operations
         try:
             if args[0] == "touch":
-                master.touch(args[1], cwd)
+                if cwd == "":
+                    touch(master,args[1], args[2:])
+                else:
+                    touch(master,full_dir + '/' + args[1], args[2])
             if args[0] == "ls":
                 Files_List=['Files']
                 Dir_List=['Directories']
@@ -101,7 +117,7 @@ def main():
                 if args[1:] and args[1] == "../" and cwd != '': #check if 2nd arg is exist and its ../
                     listls = master.read(prev_dirc)
                 else:
-                    listls = master.read(cwd)
+                    listls = master.read(full_dir)
                 for x in listls:
                     if 'file' in listls[x]:
                         #print(x + '  <--file')
@@ -122,9 +138,13 @@ def main():
                        l=2 
                 print('|' + Max_Dir_Len*'_' + '|' + Max_file_Len*'_' + '|')
             if args[0] == "rm":
-                master.rm(args[1])
+                if cwd=='':
+                    dir = args[1]
+                else:
+                    dir = full_dir + '/' + args[1]
+                master.rm(dir)
             if args[0] == "size":
-                Size(master,args[1])
+                Size(master,full_dir + '/' + args[1])
             # Print last operation
             if args[0] == "last":
                 print(last)
@@ -133,25 +153,35 @@ def main():
                 if args[1][0:1] == '/':
                     print('Forbidden character!')
                 else:
-                    master.mkdir(args[1], cwd)
+                    master.mkdir(args[1], full_dir)
             if args[0] == "rmdir":
-                master.rmdir(args[1])
+                dir_rmdir = full_dir + '/' + args[1]
+                master.rmdir(dir_rmdir)
             if args[0] == "get":
                 #get(master, args[1]) old without writing to file
-                get(master, args[1], args[2])
+                dir_get = full_dir + '/' + args[1]
+                get(master, dir_get, args[2])
             if args[0] == "put":
                 if cwd == "":
                     put(master, source=args[1], filename=cwd + args[2])
                 else:
-                    put(master, source=args[1], filename=cwd + "/" + args[2])
+                    put(master, source=args[1], filename=full_dir + "/" + args[2])
             if args[0] == "cd":
                 if args[1:] and args[1] == "../" and cwd != '': #check if 2nd arg is exist and its ../
                     cwd = prev_dirc
                 else:
-                    if master.cd(args[1]):
+                    if cwd=='':
+                        full_dir = args[1]
+                    elif args[1] == '/' or args[1] == ' ':
+                        full_dir = ''
+                    else:
+                        full_dir = cwd + '/' + args[1]
+                    print(full_dir)
+                    if master.cd(full_dir):
                         prev_dirc = cwd # previous dirc for ls ../ and cd ../
                         if args[1] == '/':
                             cwd = ""
+                            full_dir=''
                         else:
                             cwd = args[1]
         except IndexError:
