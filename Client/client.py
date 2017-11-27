@@ -33,6 +33,7 @@ def File_Exist_DS(file_path, data_server): # testing if file is exist on DS
     data_server = con.root.DataServer()
     return data_server.Check_if_exist(file_path)
 
+
 # TODO: write data to disk -> done
 # def get(name_server, filename): add writing to file where dest is file name
 def get(name_server, filename, dest):
@@ -46,19 +47,20 @@ def get(name_server, filename, dest):
         print("No such file on the DS")
 
 
-
 def put(name_server, source, filename):
-    #if name_server.write(filename): error if file not exist
-    if os.path.isfile(source): # checking if file is exist on client side before sending to name server
-        if name_server.write(filename):
+    # if name_server.write(filename): error if file not exist
+    if os.path.isfile(source):  # checking if file is exist on client side before sending to name server
+        if name_server.can_write(filename):
             f = open(source, 'rb')
             mdate = os.path.getmtime(source)
             data = f.read()
             # with open(source) as data:
             data_servers = name_server.get_data_servers()
             send_to_ds(filename, data, data_servers, mdate)
+            name_server.write(filename)
     else:
         print('Wrong or non-existing path')
+
 
 def Size(name_server, filename):
     a = File_Size_From_DS(filename, name_server.get_data_servers()[0])

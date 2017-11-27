@@ -1,74 +1,75 @@
 import operator
 import threading
 from functools import reduce
-
 import errno
 import rpyc
 import os
-from os.path import getsize, join
-
+from os.path import join
 import sys
-
 import time
 from rpyc.utils.server import ThreadedServer
 
 DATA_DIR = "files/"
 
 
-def get_file_structure():
-    try:
-        conn = rpyc.connect('localhost', 2131)
-        ns = conn.root.Master()
-        DataService.exposed_DataServer.file_dict = ns.read()
-    except ConnectionError:
-        print("NS not available")
+def update(selfport):
 
+    def get_and_write(port):
+        dss = ns.get_data_servers()  # get list of data servers
+        for each in dss:  #
+            if each[1] != selfport:  # if the server is different from me
 
-def update():
-    get_file_structure()
-    for root, dirs, files in os.walk(DATA_DIR):
-        for name in files:
-            file_path = join(root, name)
-            map_list = file_path.split('/')
-            structure = DataService.exposed_DataServer.file_dict
-            print(structure)
-            tmp = reduce(operator.getitem, map_list[1:], structure)
-            tmp = 'lol'
-            print(tmp)
+                ds_conn = rpyc.connect(each[0], each[1])  # initialize connection
+                ds = ds_conn.root.DataService()
+                try:
+                    data = ds \
+                        .get(file_path.split('/', maxsplit=1)[1])  # try to get file from that server
+                    open(file_path, 'rb').write(data)  # and write
+                    break  # if written - break
+                except FileNotFoundError as err:
+                    print(err)
+                    print('File not found on: ' + str(each))  # other case - try other servers.
 
-
-class DataService(rpyc.Service):
-    class exposed_DataServer:
-        file_dict = {}
-
-        # def __init__(self):
-        #     self.update()
-
-        def get_file_structure(self):
+    while True:
+        while True:
             try:
                 conn = rpyc.connect('localhost', 2131)
                 ns = conn.root.Master()
-                DataService.exposed_DataServer.file_dict = ns.read()
+                DataService.exposed_DataServer.ns_file_dict = ns.read()
+                break
             except ConnectionError:
                 print("NS not available")
+            time.sleep(5)
 
-        def update(self):
-            get_file_structure()
-            for root, dirs, files in os.walk(DATA_DIR):
-                for name in files:
-                    file_path = join(root, name)
-                    map_list = file_path.split('/')
-                    structure = self.file_dict
-                    print(structure)
-                    tmp = reduce(operator.getitem, map_list[1:], structure)
-                    tmp = 'lol'
-                    print(tmp)
+        ns_files = DataService.exposed_DataServer.ns_file_dict
+        print(DataService.exposed_DataServer.ns_file_dict)
+
+        # Find updates for existing files
+        for root, dirs, files in os.walk(DATA_DIR):
+            for name in files:
+                file_path = join(root, name)
+                print("File path: " + str(file_path))
+                map_list = file_path.split('/')[1:]
+
+                try:
+                    tmp = reduce(operator.getitem, map_list, ns_files)  # try to retrive same file from NS records
+                    if tmp[0] == 'file':                                # if found:
+                        if tmp[1] > os.path.getmtime(file_path):        # check mod date
+                            get_and_write(selfport)
+                except KeyError:    # if file not found on NS, delete it here.
+                    os.remove(file_path)
+
+            # Find missing files here, use get_and_write(port)
+
+        time.sleep(10)
+
+class DataService(rpyc.Service):
+    class exposed_DataServer:
+        ns_file_dict = {}
 
         def exposed_put(self, file_path: str, mdate, data, data_servers) -> bool:
-            #  Checks for date of file and writes file to server. Returns True on successful write. Also starts thread
-            # for forwarding file to other DS
+            #  Checks for date of file and writes file to server. Returns True on successful write.
             to_write = False
-
             if not os.path.isfile(DATA_DIR + file_path):
                 to_write = True
             elif mdate > os.path.getmtime(DATA_DIR + file_path):
@@ -84,10 +85,16 @@ class DataService(rpyc.Service):
                     f.write(data)
                 if len(data_servers) > 0:
                     print('Start forwarding to ' + str(data_servers))
-                    # forward = threading.Thread(target=self.forward, args=(file_path, mdate, data, data_servers))
+                    # TODO: if some can make it work it would be great, it works good enough for small files.
+                    # forward = threading.Thread(target=self.forward, name='Forwarder',
+                    #                            args=(file_path, mdate, data, data_servers_not_referenced))
                     # forward.daemon = True
                     # forward.start()
-                    # time.sleep(5)
+                    # forward.join()
+                    # print('forwader started')
+                    #
+                    # time.sleep(1)
+
                     self.forward(file_path, mdate, data, data_servers)
             return to_write
 
@@ -117,17 +124,21 @@ class DataService(rpyc.Service):
                 Size /= 1024.0
 
         # TODO: improve, no ideas
-        # @staticmethod
         def forward(self, file_path, mdate, data, data_servers):
+
             print("forwaring to:")
             print(file_path, data_servers)
-            ds = data_servers[0]
-            data_servers = data_servers[1:]
+
+
+            dss = data_servers[:]
+            #print(dss)
+            ds = dss[0]
+            servers = dss[1:]
             host, port = ds
 
             con = rpyc.connect(host, port=port)
             ds = con.root.DataServer()
-            ds.put(file_path, mdate, data, data_servers)
+            ds.put(file_path, mdate, data, servers)
 
         # TODO: Handle exceptions
         def exposed_delete_file(self, file_path):
@@ -135,13 +146,14 @@ class DataService(rpyc.Service):
                 os.remove(file_path)
 
         def get_file_dict(self) -> dict:
-            return self.file_dict
+            return self.ns_file_dict
 
 if __name__ == "__main__":
-    # get_file_structure()
-    # update()
-    # tmp = sys.argv()
+    # update(int(sys.argv[1]))
     if not os.path.isdir(DATA_DIR):
         os.mkdir(DATA_DIR)
+    updater = threading.Thread(name="Updater", target=update, args=(int(sys.argv[1]),), daemon=True)
+    updater.start()
+
     t = ThreadedServer(DataService, port=int(sys.argv[1]))
     t.start()
