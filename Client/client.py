@@ -28,7 +28,7 @@ def File_Size_From_DS(file_path, data_server):
     return data_server.file_size(file_path)
 
 def File_Exist_DS(file_path, data_server): # testing if file is exist on DS
-    host, port = data_serverpath.getmtime(source)
+    host, port = data_server
     con = rpyc.connect(host, port=port)
     data_server = con.root.DataServer()
     return data_server.Check_if_exist(file_path)

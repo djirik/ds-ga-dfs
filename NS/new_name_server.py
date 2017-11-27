@@ -18,7 +18,7 @@ def int_handler(sig, frame):
     pickle.dump(MasterService.exposed_Master.file_table, open('fs.img', 'wb'))
     sys.exit(0)
 
-
+#TODO creating timestamp for checking the status of each server
 def set_conf():
     MasterService.exposed_Master.data_servers.clear()  # clear the old conf
     conf = configparser.ConfigParser()
@@ -154,7 +154,7 @@ class MasterService(rpyc.Service):
                 return True
             else:
                 return False
-
+                
         # Requires full file path
         # TODO handle exception
         def exposed_mkdir(self, dir_name: str, path=""):
@@ -167,16 +167,16 @@ class MasterService(rpyc.Service):
                 reduce(operator.getitem, map_list, self.__class__.file_table).update(dir_to_add)
             print(self.__class__.file_table)
 
-        def exposed_touch(self, file_name: str, path=""):
-            map_list = path.split('/')
+        # def exposed_touch(self, file_name: str, path=""):
+        #     map_list = path.split('/')
 
-            file_to_add = {file_name: ('file', time.time())}
+        #     file_to_add = {file_name: ('file', time.time())}
 
-            if path == '':
-                self.__class__.file_table.update(file_to_add)
-            else:
-                reduce(operator.getitem, map_list, self.__class__.file_table).update(file_to_add)
-            print(self.__class__.file_table)
+        #     if path == '':
+        #         self.__class__.file_table.update(file_to_add)
+        #     else:
+        #         reduce(operator.getitem, map_list, self.__class__.file_table).update(file_to_add)
+        #     print(self.__class__.file_table)
 
         # Requires full file path
         # TODO handle exception
