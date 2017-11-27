@@ -20,7 +20,7 @@ def int_handler(sig, frame):
 
 
 def set_conf():
-    MasterService.exposed_Master.data_servers.clear() # clear the old conf
+    MasterService.exposed_Master.data_servers.clear()  # clear the old conf
     conf = configparser.ConfigParser()
     conf.read_file(open('dfs.conf'))
     MasterService.exposed_Master.replication_factor = int(conf.get('master', 'replication_factor'))
@@ -98,8 +98,8 @@ class MasterService(rpyc.Service):
                 return self.__class__.file_table
             else:
                 map_list = path.split('/')
-                path = map_list[0:-1]
-                if self.exists(path):
+                map_path = map_list[0:-1]
+                if self.exists(map_path):
                     # if self.exists(map_list):  Error
                     return reduce(operator.getitem, map_list, self.__class__.file_table)
                 else:
@@ -107,8 +107,10 @@ class MasterService(rpyc.Service):
 
         # Requires full file path
         # TODO handle exception
-        def exposed_write(self, full_path="") -> bool:
+        def exposed_write(self, full_path="", mdate=0) -> bool:
             """
+            :param mdate: last modification date
+            :type mdate: float
             :param full_path: Path where to write to. including filename
             :type full_path: str
             :return: True on success, False on fail
@@ -117,19 +119,26 @@ class MasterService(rpyc.Service):
             # If fname is "" it will read contents of root directory
             map_list = full_path.split('/')
             file_name = map_list[-1]
-            path = map_list[0:-1]
+            map_path = map_list[0:-1]
 
-            if self.exists(path):
-                reduce(operator.getitem, path, self.__class__.file_table).update({file_name: 'file'})
+            if self.exists(map_path):
+                reduce(operator.getitem, map_path, self.__class__.file_table).update({file_name: ('file', mdate)})
                 print(self.__class__.file_table)
                 return True
             else:
                 return False
 
+        def exposed_can_write(self, full_path="") -> bool:
+            map_list = full_path.split('/')
+            map_path = map_list[0:-1]
+            if self.exists(map_path):
+                return True
+            else:
+                return False
         # Requires full file path
         # TODO handle exception, add request to data servers
         def delete(self, full_path="") -> bool:
-            #  Add request to data server : done
+            #  Add request to data server
             """
             :param full_path:  Full path to the file
             :type full_path: str
@@ -160,7 +169,7 @@ class MasterService(rpyc.Service):
 
         def exposed_touch(self, file_name: str, path=""):
             map_list = path.split('/')
-            file_to_add = {file_name: 'file'}
+            file_to_add = {file_name: ('file', 0)}
 
             if path == '':
                 self.__class__.file_table.update(file_to_add)
@@ -215,7 +224,7 @@ class MasterService(rpyc.Service):
                 try:
                     tmp = reduce(operator.getitem, path, self.__class__.file_table)
                     #if type(tmp) is dict: old used only for dir
-                    if type(tmp) is dict or tmp == "file": #check if the tmp a file or dic to delete it
+                    if type(tmp) is dict or tmp[0] == "file": #check if the tmp a file or dic to delete it
                         return True
                     else:
                         return False

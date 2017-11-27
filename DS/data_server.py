@@ -16,7 +16,7 @@ def update():
         try:
             conn = rpyc.connect('localhost', 2131)
             ns = conn.root.Master()
-            DataService.exposed_DataServer.file_dict = ns.read()
+            DataService.exposed_DataServer.ns_file_dict = ns.read()
             break
         except ConnectionError:
             print("NS not available")
@@ -26,23 +26,23 @@ def update():
         for name in files:
             file_path = join(root, name)
             print("File path: " + str(file_path))
-            map_list = file_path.split('/')
-            test_map_list = ['qwe']
-            structure = DataService.exposed_DataServer.file_dict
-            print(DataService.exposed_DataServer.file_dict)
+            map_list = file_path.split('/')[1:]
+
+            ns_files = DataService.exposed_DataServer.ns_file_dict
+            print(DataService.exposed_DataServer.ns_file_dict)
             try:
-                tmp = reduce(operator.getitem, test_map_list, structure)
-                if tmp == 'file':
+                tmp = reduce(operator.getitem, map_list, ns_files)
+                if tmp[0] == 'file':
                     pass
                 #tmp = 'lol'
                 #print(tmp)
             except KeyError:
-                pass
+                os.remove(file_path)
 
 
 class DataService(rpyc.Service):
     class exposed_DataServer:
-        file_dict = {}
+        ns_file_dict = {}
 
         def exposed_put(self, file_path: str, mdate, data, data_servers) -> bool:
             #  Checks for date of file and writes file to server. Returns True on successful write.
@@ -123,7 +123,7 @@ class DataService(rpyc.Service):
                 os.remove(file_path)
 
         def get_file_dict(self) -> dict:
-            return self.file_dict
+            return self.ns_file_dict
 
 if __name__ == "__main__":
     # update()
