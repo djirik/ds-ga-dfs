@@ -98,7 +98,7 @@ def main():
                 Files_List=['Files']
                 Dir_List=['Directories']
                 #listls = master.read(cwd) old, now ls ../ works fine
-                if args[1:] and args[1] == "../" and cwd != '': #check if snd arg is exist and its ../
+                if args[1:] and args[1] == "../" and cwd != '': #check if 2nd arg is exist and its ../
                     listls = master.read(prev_dirc)
                 else:
                     listls = master.read(cwd)
@@ -112,7 +112,7 @@ def main():
                         #print(colored.red(x))
                         Dir_List.append(x) # append to dir list
                 Max_Dir_Len= len(max(Dir_List, key=len))
-                Max_file_Len= len(max(Dir_List, key=len))
+                Max_file_Len= len(max(Files_List, key=len))
                 print('|' + Max_Dir_Len*'=' + '|' + Max_file_Len*'=' + '|')
                 l=1 # header should be printed once
                 for col,col1 in itertools.zip_longest(Dir_List,Files_List,fillvalue=''):
@@ -145,12 +145,15 @@ def main():
                 else:
                     put(master, source=args[1], filename=cwd + "/" + args[2])
             if args[0] == "cd":
-                prev_dirc = cwd # previous dirc for ls ../
-                if master.cd(args[1]):
-                    if args[1] == '/':
-                        cwd = ""
-                    else:
-                        cwd = args[1]
+                if args[1:] and args[1] == "../" and cwd != '': #check if 2nd arg is exist and its ../
+                    cwd = prev_dirc
+                else:
+                    if master.cd(args[1]):
+                        prev_dirc = cwd # previous dirc for ls ../ and cd ../
+                        if args[1] == '/':
+                            cwd = ""
+                        else:
+                            cwd = args[1]
         except IndexError:
             print('Wrong operation arguments')
 
