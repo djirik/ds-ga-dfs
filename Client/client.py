@@ -98,7 +98,7 @@ def main():
                 Files_List=['Files']
                 Dir_List=['Directories']
                 #listls = master.read(cwd) old, now ls ../ works fine
-                if args[1:] and args[1] == "../" and cwd != '': #check if snd arg is exist and its ../
+                if args[1:] and args[1] == "../" and cwd != '': #check if 2nd arg is exist and its ../
                     listls = master.read(prev_dirc)
                 else:
                     listls = master.read(cwd)
@@ -145,13 +145,11 @@ def main():
                 else:
                     put(master, source=args[1], filename=cwd + "/" + args[2])
             if args[0] == "cd":
-                print(args[1:] and args[1] == "../" and cwd != '')
-                if args[1:] and args[1] == "../" and cwd != '': #check if snd arg is exist and its ../
+                if args[1:] and args[1] == "../" and cwd != '': #check if 2nd arg is exist and its ../
                     cwd = prev_dirc
                 else:
                     if master.cd(args[1]):
-                        prev_dirc = cwd # previous dirc for ls ../
-                        print(prev_dirc)
+                        prev_dirc = cwd # previous dirc for ls ../ and cd ../
                         if args[1] == '/':
                             cwd = ""
                         else:
