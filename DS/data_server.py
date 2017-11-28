@@ -27,7 +27,9 @@ def update(selfport):
                         .get(file_path.split('/', maxsplit=1)[1])  # try to get file from that server
                     ds_conn.close()
                     with open(file_path, 'wb') as f:  # and write
-                        f.write(data)
+                        #f.write(data) old, error if data is None type
+                        if data is not None:
+                            f.write(data)
                     break  # if written - break
                 except FileNotFoundError as err:
                     print(err)

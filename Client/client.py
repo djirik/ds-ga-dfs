@@ -111,7 +111,6 @@ def main():
         try:
             con = rpyc.connect("localhost", port=2131)
             master = con.root.Master()
-            print(master)
             while True:
                 try:
                     last = user_input
