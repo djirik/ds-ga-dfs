@@ -105,7 +105,9 @@ def main():
     user_input = ""
     prev_dirc = ""
     full_dir=''
-    logging.basicConfig(format='%(asctime)s %(message)s', filename="client.log", level=logging.INFO)
+    logging.basicConfig(filename="client.log", level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%m/%d/%Y %I:%M:%S')
+    #logging.basicConfig(filename="client.log",level=logging.INFO)
+    #logging.Formatter('%Y-%m-%d %H:%M:%S')
     logging.info('Client is started')
     while True:
         try:
@@ -171,7 +173,7 @@ def main():
                         # Dir operations
                         elif args[0] == "mkdir":
                             if args[1][0:1] == '/':
-                                logging.info('Forbidden character!')
+                                logging.error('Forbidden character!')
                                 print('Forbidden character!')
                             else:
                                 master.mkdir(args[1], full_dir)
@@ -209,13 +211,13 @@ def main():
                             logging.info('Client is closed')
                             sys.exit()
                     except IndexError:
-                        logging.info('Wrong operation arguments')
+                        logging.error('Wrong operation arguments')
                         print('Wrong operation arguments')
                 except Exception as err:
                     print(err)
                     break
         except ConnectionError:
-            logging.info('NS is not available now, please wait :)')
+            logging.warning('NS is not available now, please wait :)')
             print("NS is not available now, please wait :)")
         time.sleep(5)
 if __name__ == "__main__":
