@@ -38,11 +38,23 @@ def File_Exist_DS(file_path, data_server): # testing if file is exist on DS
     data_server = con.root.DataServer()
     return data_server.Check_if_exist(file_path)
 
+def Dir_Exist_DS(file_path, data_server): # testing if file is exist on DS
+    host, port = data_server
+    con = rpyc.connect(host, port=port)
+    data_server = con.root.DataServer()
+    return data_server.Check_if_Dir_exist(file_path)
+
 def rm_DS(file_path, data_server): # testing if file is exist on DS
     host, port = data_server
     con = rpyc.connect(host, port=port)
     data_server = con.root.DataServer()
     return data_server.delete_file(file_path)
+
+def rmdir_DS(file_path, data_server): # testing if file is exist on DS
+    host, port = data_server
+    con = rpyc.connect(host, port=port)
+    data_server = con.root.DataServer()
+    return data_server.delete_folder(file_path)
 
 # TODO: write data to disk -> done
 # def get(name_server, filename): add writing to file where dest is file name
@@ -56,12 +68,12 @@ def get(name_server, filename, dest):
     else:
         print("No such file on the DS")
 
-def rm(name_server, filename):
-    if File_Exist_DS(filename,name_server.get_data_servers()[0]):
-        if rm_DS(filename,name_server.get_data_servers()[0]):
+def rmdir(name_server, filename):
+    if Dir_Exist_DS(filename,name_server.get_data_servers()[0]):
+        if rmdir_DS(filename,name_server.get_data_servers()[0]):
             return True
     else:
-        print("No such file on the DS")
+        print("No such folder on the DS")
         return False
 
 def put(name_server, source, filename):
@@ -190,6 +202,7 @@ def main():
                                 dir_rmdir= args[1]
                             else:
                                 dir_rmdir = full_dir + '/' + args[1]
+                            rmdir(master,dir_rmdir)
                             master.rmdir(dir_rmdir)
                         elif args[0] == "get":
                             #get(master, args[1]) old without writing to file

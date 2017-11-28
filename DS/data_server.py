@@ -8,6 +8,7 @@ from os.path import join
 import sys
 import time
 from rpyc.utils.server import ThreadedServer
+from shutil import rmtree
 
 DATA_DIR = "files/"
 
@@ -137,6 +138,10 @@ class DataService(rpyc.Service):
             print(file)
             return os.path.isfile(file)
         
+        def exposed_Check_if_Dir_exist(self, file_path):
+            file = DATA_DIR + str(file_path)
+            return os.path.isdir(file)
+
         def exposed_file_size(self, file_path):
             file = DATA_DIR + str(file_path)
             print(file)
@@ -176,6 +181,13 @@ class DataService(rpyc.Service):
         def exposed_delete_file(self, file_path):
             if os.path.isfile(DATA_DIR + file_path):
                 os.remove(DATA_DIR + file_path)
+                return True
+            else:
+                return False
+
+        def exposed_delete_folder(self, file_path):
+            if os.path.isdir(DATA_DIR + file_path):
+                rmtree(DATA_DIR + file_path)
                 return True
             else:
                 return False
