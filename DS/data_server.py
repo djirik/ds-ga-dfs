@@ -145,13 +145,10 @@ class DataService(rpyc.Service):
             file = DATA_DIR + str(file_path)
             print(file)
             return os.path.isfile(file)
-<<<<<<< HEAD
         
         def exposed_Check_if_Dir_exist(self, file_path):
             file = DATA_DIR + str(file_path)
             return os.path.isdir(file)
-=======
->>>>>>> d8713d3225fae0cce2c14cd66ec9e2c40690b650
 
         def exposed_file_size(self, file_path):
             file = DATA_DIR + str(file_path)
