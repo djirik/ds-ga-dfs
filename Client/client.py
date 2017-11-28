@@ -4,6 +4,7 @@ import sys
 import os
 import itertools
 import time
+import logging
 
 def send_to_ds(file_path, data, data_servers, mdate):
     print("sending: " + user_input(data_servers))
@@ -77,7 +78,6 @@ def touch(name_server, filename, source_data):
 def Size(name_server, filename):
     a = File_Size_From_DS(filename, name_server.get_data_servers()[0])
     print(a)
-
 # TODO: Need to parse input user_inputing into array
 def main():
     #con = rpyc.connect("192.168.56.110", port=2131)
@@ -92,17 +92,21 @@ def main():
     user_input = ""
     prev_dirc = ""
     full_dir=''
+    logging.basicConfig(filemode="w", filename="client.log", level=logging.INFO)
+    logging.info('Started')
+
     while True:
         try:
             con = rpyc.connect("localhost", port=2131)
             master = con.root.Master()
             print(master)
             while True:
+
                 try:
                     last = user_input
                     user_input = input("user@" + full_dir + "#: ")
+                    logging.info(user_input)
                     args = user_input.split(' ')
-
                     # Current working dir
                     if args[0] == "cwd":
                         print("/" + full_dir)
@@ -194,8 +198,8 @@ def main():
                     break
         except ConnectionError:
             print("NS is not available now, please wait :)")
-        
-        time.sleep(5)
+        #time.sleep(5)
+        logging.info('Finished')
 if __name__ == "__main__":
     #main(sys.argv[1:])
     main()
