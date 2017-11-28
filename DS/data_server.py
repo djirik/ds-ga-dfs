@@ -179,7 +179,7 @@ if __name__ == "__main__":
     # update(int(sys.argv[1]))
     if not os.path.isdir(DATA_DIR):
         os.mkdir(DATA_DIR)
-    updater = threading.Thread(name="Updater", target=update, args=(int(8888),), daemon=True)
+    updater = threading.Thread(name="Updater", target=update, args=(int(sys.argv[1]),), daemon=True)
     updater.start()
 
     t = ThreadedServer(DataService, port=int(sys.argv[1]))
