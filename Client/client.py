@@ -102,21 +102,20 @@ def Size(name_server, filename):
 # TODO: Need to parse input user_inputing into array
 def main():
     #con = rpyc.connect("192.168.56.110", port=2131)
-    print("""
+    salute = ("""
     **********************************
     *************╔══╗*****************
     *************╚╗╔╝*****************
     *************╔╝(¯`v´¯)************
     *************╚══`.¸.[DFS]*********
     **********************************""")
+    print(colored.blue(salute))
     cwd = ""
     user_input = ""
     prev_dirc = ""
     full_dir =''
     ForbChar = "/"
     logging.basicConfig(filename="client.log", level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%m/%d/%Y %I:%M:%S')
-    #logging.basicConfig(filename="client.log",level=logging.INFO)
-    #logging.Formatter('%Y-%m-%d %H:%M:%S')
     logging.warning('Client is started')
     while True:
         try:
