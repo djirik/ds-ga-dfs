@@ -182,5 +182,5 @@ if __name__ == "__main__":
     updater = threading.Thread(name="Updater", target=update, args=(int(8888),), daemon=True)
     updater.start()
 
-    t = ThreadedServer(DataService, port=int(8888))
+    t = ThreadedServer(DataService, port=int(sys.argv[1]))
     t.start()
