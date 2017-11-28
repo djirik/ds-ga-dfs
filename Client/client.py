@@ -105,7 +105,7 @@ def main():
     user_input = ""
     prev_dirc = ""
     full_dir=''
-    logging.basicConfig(filename="client.log", level=logging.INFO)
+    logging.basicConfig(format='%(asctime)s %(message)s', filename="client.log", level=logging.INFO)
     logging.info('Client is started')
     while True:
         try:
