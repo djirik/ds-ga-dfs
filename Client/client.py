@@ -114,21 +114,21 @@ def Size(name_server, filename):
 # TODO: Need to parse input user_inputing into array
 def main():
     #con = rpyc.connect("192.168.56.110", port=2131)
-    print("""
+    salute = ("""
     **********************************
     *************╔══╗*****************
     *************╚╗╔╝*****************
     *************╔╝(¯`v´¯)************
     *************╚══`.¸.[DFS]*********
     **********************************""")
+    print(colored.blue(salute))
     cwd = ""
     user_input = ""
     prev_dirc = ""
-    full_dir=''
+    full_dir =''
+    ForbChar = "/"
     logging.basicConfig(filename="client.log", level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%m/%d/%Y %I:%M:%S')
-    #logging.basicConfig(filename="client.log",level=logging.INFO)
-    #logging.Formatter('%Y-%m-%d %H:%M:%S')
-    logging.info('Client is started')
+    logging.warning('Client is started')
     while True:
         try:
             con = rpyc.connect("localhost", port=2131)
@@ -139,7 +139,6 @@ def main():
                     user_input = input("user@" + full_dir + "#: ")
                     logging.info(user_input)
                     args = user_input.split(' ')
-
                     # Current working dir
                     if args[0] == "cwd":
                         print("/" + full_dir)
@@ -192,7 +191,8 @@ def main():
                             print(last)
                         # Dir operations
                         elif args[0] == "mkdir":
-                            if args[1][0:1] == '/':
+                            #if args[1][0:1] == '/':
+                            if ForbChar in args[1]:
                                 logging.error('Forbidden character!')
                                 print('Forbidden character!')
                             else:
@@ -232,10 +232,10 @@ def main():
                                     else:
                                         cwd = args[1]
                         elif args[0] == "exit":
-                            logging.info('Client is closed')
+                            logging.warning('Client is closed')
                             sys.exit()
                     except IndexError:
-                        logging.error('Wrong operation arguments')
+                        logging.warning('Wrong operation arguments')
                         print('Wrong operation arguments')
                 except Exception as err:
                     print(err)
