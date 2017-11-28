@@ -18,7 +18,7 @@ def int_handler(sig, frame):
     pickle.dump(MasterService.exposed_Master.file_table, open('fs.img', 'wb'))
     sys.exit(0)
 
-#TODO creating timestamp for checking the status of each server
+
 def set_conf():
     MasterService.exposed_Master.data_servers.clear()  # clear the old conf
     conf = configparser.ConfigParser()

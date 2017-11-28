@@ -26,8 +26,8 @@ def update(selfport):
                     data = ds\
                         .get(file_path.split('/', maxsplit=1)[1])  # try to get file from that server
                     ds_conn.close()
-                    open(file_path, 'wb').write(data)  # and write
-
+                    with open(file_path, 'wb') as f:  # and write
+                        f.write(data)
                     break  # if written - break
                 except FileNotFoundError as err:
                     print(err)
@@ -35,7 +35,9 @@ def update(selfport):
 
     def get_file(files: dict, current_path: str):
         for entry in files:
-            if type(files[entry]) is dict:
+
+            tmp = files[entry]
+            if isinstance(tmp, dict):
                 current_path += (str(entry)) + '/'
                 # print(current_path)
                 get_file(files[entry], current_path)

@@ -4,7 +4,6 @@ import sys
 import os
 import itertools
 import time
-import logging
 
 def send_to_ds(file_path, data, data_servers, mdate):
     print("sending: " + str(data_servers))
@@ -58,7 +57,7 @@ def put(name_server, source, filename):
             # with open(source) as data:
             data_servers = name_server.get_data_servers()
             send_to_ds(filename, data, data_servers, mdate)
-            name_server.write(full_path=filename, mdate=mdate)
+            name_server.write(filename)
     else:
         print('Wrong or non-existing path')
 
@@ -73,11 +72,12 @@ def touch(name_server, filename, source_data):
         # with open(source) as data:
         data_servers = name_server.get_data_servers()
         send_to_ds(filename, data, data_servers, mdate)
-        name_server.write(filename, mdate)
+        name_server.write(filename)
 
 def Size(name_server, filename):
     a = File_Size_From_DS(filename, name_server.get_data_servers()[0])
     print(a)
+
 # TODO: Need to parse input user_inputing into array
 def main():
     #con = rpyc.connect("192.168.56.110", port=2131)
@@ -92,21 +92,17 @@ def main():
     user_input = ""
     prev_dirc = ""
     full_dir=''
-    logging.basicConfig(filemode="w", filename="client.log", level=logging.INFO)
-    logging.info('Started')
-
     while True:
         try:
             con = rpyc.connect("localhost", port=2131)
             master = con.root.Master()
             print(master)
             while True:
-
                 try:
                     last = user_input
                     user_input = input("user@" + full_dir + "#: ")
-                    logging.info(user_input)
                     args = user_input.split(' ')
+
                     # Current working dir
                     if args[0] == "cwd":
                         print("/" + full_dir)
@@ -143,7 +139,7 @@ def main():
                                 print('|' +colored.red('{Dir_Name:{Dir_Len}}').format(Dir_Name= col,Dir_Len= Max_Dir_Len) + '|' + colored.green('{File_Name:{File_len}}').format(File_len= Max_file_Len,File_Name= col1)  + '|' )
                                 if l==1: #print the lower part of header only once
                                     print('|' + Max_Dir_Len*'=' + '|' + Max_file_Len*'=' + '|')
-                                    l=2 
+                                    l=2
                             print('|' + Max_Dir_Len*'_' + '|' + Max_file_Len*'_' + '|')
                         if args[0] == "rm":
                             if cwd=='':
@@ -199,8 +195,8 @@ def main():
                     break
         except ConnectionError:
             print("NS is not available now, please wait :)")
-        #time.sleep(5)
-        logging.info('Finished')
+
+        time.sleep(5)
 if __name__ == "__main__":
     #main(sys.argv[1:])
     main()
