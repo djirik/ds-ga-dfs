@@ -93,10 +93,11 @@ class DataService(rpyc.Service):
         def exposed_put(self, file_path: str, mdate, data, data_servers) -> bool:
             #  Checks for date of file and writes file to server. Returns True on successful write.
             to_write = False
-            if not os.path.isfile(DATA_DIR + file_path):
+            if not os.path.isfile(DATA_DIR + file_path) and not os.path.isdir(DATA_DIR + file_path):
                 to_write = True
-            elif mdate > os.path.getmtime(DATA_DIR + file_path):
+            elif mdate > os.path.getmtime(DATA_DIR + file_path) and not os.path.isdir(DATA_DIR + file_path):
                 to_write = True
+            print(to_write)
             if to_write:
                 if not os.path.exists(os.path.dirname(DATA_DIR + file_path)):
                     try:
@@ -104,7 +105,7 @@ class DataService(rpyc.Service):
                     except OSError as exc:  # Guard against race condition
                         if exc.errno != errno.EEXIST:
                             raise
-                with open(DATA_DIR + str(file_path), 'wb') as f:
+                with open(DATA_DIR + str(file_path), 'wb+') as f:
                     f.write(data)
                 os.utime(DATA_DIR + str(file_path), (time.time(), mdate))
                 if len(data_servers) > 0:

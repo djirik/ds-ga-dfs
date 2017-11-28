@@ -7,13 +7,17 @@ import time
 import logging
 
 def send_to_ds(file_path, data, data_servers, mdate):
-    print("sending: " + str(data_servers))
     data_server = data_servers[0]
     data_servers = data_servers[1:]
     host, port = data_server
     con = rpyc.connect(host, port=port)
     data_server = con.root.DataServer()
-    data_server.put(file_path, mdate, data, data_servers)
+    #data_server.put(file_path, mdate, data, data_servers): old, error if there is a dirc on the same name as the file
+    if data_server.put(file_path, mdate, data, data_servers): #checking if we can write as file to the DS
+        print("sending: " + str(data_servers))
+    else:
+        print("Error, can not write the file to DS")
+        return False
 
 
 def read_from_ds(file_path, data_server):
@@ -69,8 +73,10 @@ def put(name_server, source, filename):
             data = f.read()
             # with open(source) as data:
             data_servers = name_server.get_data_servers()
-            send_to_ds(filename, data, data_servers, mdate)
-            name_server.write(filename)
+            #send_to_ds(filename, data, data_servers, mdate)
+            #name_server.write(filename) old, error if dirc with the same name is file
+            if send_to_ds(filename, data, data_servers, mdate):
+                name_server.write(filename)
     else:
         print('Wrong or non-existing path')
 
@@ -84,8 +90,10 @@ def touch(name_server, filename, source_data):
         data = data_full.encode()
         # with open(source) as data:
         data_servers = name_server.get_data_servers()
-        send_to_ds(filename, data, data_servers, mdate)
-        name_server.write(filename)
+        #send_to_ds(filename, data, data_servers, mdate)
+        #name_server.write(filename) old, error if dirc with the same name is file
+        if send_to_ds(filename, data, data_servers, mdate):
+            name_server.write(filename)
 
 def Size(name_server, filename):
     a = File_Size_From_DS(filename, name_server.get_data_servers()[0])
@@ -179,7 +187,10 @@ def main():
                             else:
                                 master.mkdir(args[1], full_dir)
                         elif args[0] == "rmdir":
-                            dir_rmdir = full_dir + '/' + args[1]
+                            if cwd=='':
+                                dir_rmdir= args[1]
+                            else:
+                                dir_rmdir = full_dir + '/' + args[1]
                             master.rmdir(dir_rmdir)
                         elif args[0] == "get":
                             #get(master, args[1]) old without writing to file
