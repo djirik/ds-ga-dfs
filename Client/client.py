@@ -4,6 +4,7 @@ import sys
 import os
 import itertools
 import time
+import logging
 
 def send_to_ds(file_path, data, data_servers, mdate):
     print("sending: " + str(data_servers))
@@ -104,6 +105,8 @@ def main():
     user_input = ""
     prev_dirc = ""
     full_dir=''
+    logging.basicConfig(filename="client.log", level=logging.INFO)
+    logging.info('Client is started')
     while True:
         try:
             con = rpyc.connect("localhost", port=2131)
@@ -113,6 +116,7 @@ def main():
                 try:
                     last = user_input
                     user_input = input("user@" + full_dir + "#: ")
+                    logging.info(user_input)
                     args = user_input.split(' ')
 
                     # Current working dir
@@ -126,7 +130,7 @@ def main():
                                 touch(master,args[1], args[2:])
                             else:
                                 touch(master,full_dir + '/' + args[1], args[2])
-                        if args[0] == "ls":
+                        elif args[0] == "ls":
                             Files_List=['Files']
                             Dir_List=['Directories']
                             #listls = master.read(cwd) old, now ls ../ works fine
@@ -153,37 +157,38 @@ def main():
                                     print('|' + Max_Dir_Len*'=' + '|' + Max_file_Len*'=' + '|')
                                     l=2
                             print('|' + Max_Dir_Len*'_' + '|' + Max_file_Len*'_' + '|')
-                        if args[0] == "rm":
+                        elif args[0] == "rm":
                             if cwd=='':
                                 dir = args[1]
                             else:
                                 dir = full_dir + '/' + args[1]
                             if rm(master,dir):
                                 master.rm(dir)
-                        if args[0] == "size":
+                        elif args[0] == "size":
                             Size(master,full_dir + '/' + args[1])
                         # Print last operation
-                        if args[0] == "last":
+                        elif args[0] == "last":
                             print(last)
                         # Dir operations
-                        if args[0] == "mkdir":
+                        elif args[0] == "mkdir":
                             if args[1][0:1] == '/':
+                                logging.info('Forbidden character!')
                                 print('Forbidden character!')
                             else:
                                 master.mkdir(args[1], full_dir)
-                        if args[0] == "rmdir":
+                        elif args[0] == "rmdir":
                             dir_rmdir = full_dir + '/' + args[1]
                             master.rmdir(dir_rmdir)
-                        if args[0] == "get":
+                        elif args[0] == "get":
                             #get(master, args[1]) old without writing to file
                             dir_get = full_dir + '/' + args[1]
                             get(master, dir_get, args[2])
-                        if args[0] == "put":
+                        elif args[0] == "put":
                             if cwd == "":
                                 put(master, source=args[1], filename=cwd + args[2])
                             else:
                                 put(master, source=args[1], filename=full_dir + "/" + args[2])
-                        if args[0] == "cd":
+                        elif args[0] == "cd":
                             if args[1:] and args[1] == "../" and cwd != '': #check if 2nd arg is exist and its ../
                                 cwd = prev_dirc
                             else:
@@ -201,14 +206,18 @@ def main():
                                         full_dir=''
                                     else:
                                         cwd = args[1]
+                        elif args[0] == "exit":
+                            logging.info('Client is closed')
+                            sys.exit()
                     except IndexError:
+                        logging.info('Wrong operation arguments')
                         print('Wrong operation arguments')
                 except Exception as err:
                     print(err)
                     break
         except ConnectionError:
+            logging.info('NS is not available now, please wait :)')
             print("NS is not available now, please wait :)")
-
         time.sleep(5)
 if __name__ == "__main__":
     #main(sys.argv[1:])
