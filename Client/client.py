@@ -6,7 +6,7 @@ import itertools
 import time
 
 def send_to_ds(file_path, data, data_servers, mdate):
-    print("sending: " + user_input(data_servers))
+    print("sending: " + str(data_servers))
     data_server = data_servers[0]
     data_servers = data_servers[1:]
     host, port = data_server
@@ -57,7 +57,7 @@ def put(name_server, source, filename):
             # with open(source) as data:
             data_servers = name_server.get_data_servers()
             send_to_ds(filename, data, data_servers, mdate)
-            name_server.write(filename)
+            name_server.write(full_path=filename, mdate=mdate)
     else:
         print('Wrong or non-existing path')
 
@@ -72,7 +72,7 @@ def touch(name_server, filename, source_data):
         # with open(source) as data:
         data_servers = name_server.get_data_servers()
         send_to_ds(filename, data, data_servers, mdate)
-        name_server.write(filename)
+        name_server.write(filename, mdate)
 
 def Size(name_server, filename):
     a = File_Size_From_DS(filename, name_server.get_data_servers()[0])
@@ -190,7 +190,8 @@ def main():
                                         cwd = args[1]
                     except IndexError:
                         print('Wrong operation arguments')
-                except:
+                except Exception as err:
+                    print(err)
                     break
         except ConnectionError:
             print("NS is not available now, please wait :)")

@@ -13,22 +13,35 @@ DATA_DIR = "files/"
 
 
 def update(selfport):
+    paths = []
 
-    def get_and_write(port):
+    def get_and_write(port, file_path):
         dss = ns.get_data_servers()  # get list of data servers
         for each in dss:  #
-            if each[1] != selfport:  # if the server is different from me
+            if each[1] != port:  # if the server is different from me
 
                 ds_conn = rpyc.connect(each[0], each[1])  # initialize connection
-                ds = ds_conn.root.DataService()
+                ds = ds_conn.root.DataServer()
                 try:
-                    data = ds \
+                    data = ds\
                         .get(file_path.split('/', maxsplit=1)[1])  # try to get file from that server
-                    open(file_path, 'rb').write(data)  # and write
+                    ds_conn.close()
+                    open(file_path, 'wb').write(data)  # and write
+
                     break  # if written - break
                 except FileNotFoundError as err:
                     print(err)
                     print('File not found on: ' + str(each))  # other case - try other servers.
+
+    def get_file(files: dict, current_path: str):
+        for entry in files:
+            if type(files[entry]) is dict:
+                current_path += (str(entry)) + '/'
+                # print(current_path)
+                get_file(files[entry], current_path)
+            else:
+                paths.append(current_path + entry)
+                #print(current_path + entry)
 
     while True:
         while True:
@@ -48,20 +61,26 @@ def update(selfport):
         for root, dirs, files in os.walk(DATA_DIR):
             for name in files:
                 file_path = join(root, name)
-                print("File path: " + str(file_path))
-                map_list = file_path.split('/')[1:]
+                # print("File path: " + str(file_path))
+                map_list = file_path.replace('\\', '/').split('/')[1:]
 
                 try:
                     tmp = reduce(operator.getitem, map_list, ns_files)  # try to retrive same file from NS records
                     if tmp[0] == 'file':                                # if found:
                         if tmp[1] > os.path.getmtime(file_path):        # check mod date
-                            get_and_write(selfport)
+                            get_and_write(selfport, file_path)
                 except KeyError:    # if file not found on NS, delete it here.
                     os.remove(file_path)
 
             # Find missing files here, use get_and_write(port)
+        get_file(ns_files, '')
 
-        time.sleep(10)
+        for path in paths:
+            if not os.path.isfile(str(DATA_DIR + path)):
+                get_and_write(selfport, DATA_DIR + path)
+
+        time.sleep(5)
+
 
 class DataService(rpyc.Service):
     class exposed_DataServer:
@@ -83,6 +102,7 @@ class DataService(rpyc.Service):
                             raise
                 with open(DATA_DIR + str(file_path), 'wb') as f:
                     f.write(data)
+                os.utime(DATA_DIR + str(file_path), (time.time(), mdate))
                 if len(data_servers) > 0:
                     print('Start forwarding to ' + str(data_servers))
                     # TODO: if some can make it work it would be great, it works good enough for small files.
@@ -129,9 +149,7 @@ class DataService(rpyc.Service):
             print("forwaring to:")
             print(file_path, data_servers)
 
-
             dss = data_servers[:]
-            #print(dss)
             ds = dss[0]
             servers = dss[1:]
             host, port = ds
@@ -139,6 +157,15 @@ class DataService(rpyc.Service):
             con = rpyc.connect(host, port=port)
             ds = con.root.DataServer()
             ds.put(file_path, mdate, data, servers)
+
+        def exposed_forward_all(self, data_servers):
+            for root, dirs, files in os.walk(DATA_DIR):
+                for name in files:
+                    file_path = join(root, name)
+                    f = open(file_path)
+                    data = f.read()
+                    self.forward(file_path, os.path.getmtime(file_path), data, data_servers)
+
 
         # TODO: Handle exceptions
         def exposed_delete_file(self, file_path):

@@ -29,22 +29,26 @@ def set_conf():
         id, host, port = m.split(":")
         MasterService.exposed_Master.data_servers.append((host, port))
 
+    for each in MasterService.exposed_Master.data_servers:
+        MasterService.exposed_Master.servers_timestamps.update({each: 0})
+
     if os.path.isfile('fs.img'):
         MasterService.exposed_Master.file_table = pickle.load(open('fs.img', 'rb'))
         print(MasterService.exposed_Master.file_table)
 
 
 def data_polling(data_servers: list):
-    with open('dfs.conf',"r") as File: # init data to check if changed
-        Init_Data = File.readlines()
+    with open('dfs.conf', "r") as File:  # init data to check if changed
+        init_data = File.readlines()
     while True:
-        with open('dfs.conf',"r") as File:
-            Current_Data = File.readlines()
-        if Init_Data != Current_Data:  # check if data is changed
-            with open('dfs.conf',"r") as File:
-                Init_Data = File.readlines() # reread the changed data
+        with open('dfs.conf', "r") as File:
+            current_data = File.readlines()
+        if init_data != current_data:  # check if data is changed
+            with open('dfs.conf', "r") as File:
+                init_data = File.readlines()  # reread the changed data
             print("Config file has been changed, Reloading configuration")
-            set_conf() # calling the conf function again to update the list of DS
+            set_conf()  # calling the conf function again to update the list of DS
+        prev_avail = len(MasterService.exposed_Master.available_data_servers)
         MasterService.exposed_Master.available_data_servers = []
         for server in data_servers:
             try:
@@ -52,12 +56,32 @@ def data_polling(data_servers: list):
                 try:
                     conn.ping(timeout=5)
                     MasterService.exposed_Master.available_data_servers.append(server)
+                    conn.close()
                 except:
                     pass
 
             except ConnectionError:
                 print(str(server) + " is not responding.")
         print("Available DS: " + str(MasterService.exposed_Master.available_data_servers))
+        # print(MasterService.exposed_Master.timestamp[0])
+        # for each in MasterService.exposed_Master.available_data_servers:
+        #     MasterService.exposed_Master.servers_timestamps[each] = MasterService.exposed_Master.timestamp[0]
+        #
+        # if prev_avail < len(MasterService.exposed_Master.available_data_servers):
+        #     max_ts = max([i for i in MasterService.exposed_Master.servers_timestamps.values()])
+        #     min_ts = min([i for i in MasterService.exposed_Master.servers_timestamps.values()])
+        #     if max_ts > min_ts:
+        #         for server, ts in MasterService.exposed_Master.servers_timestamps:
+        #             if ts == max_ts:
+        #                 host, port = server
+        #                 conn = rpyc.connect(host, port)
+        #                 ds = conn.root.DataService()
+        #                 all_servers_except_current = MasterService.exposed_Master.available_data_servers[:]
+        #                 all_servers_except_current.remove(server)
+        #                 if server not in MasterService.exposed_Master.available_data_servers:
+        #                     ds.forward_all(all_servers_except_current)
+        # print(MasterService.exposed_Master.servers_timestamps)
+
         time.sleep(5)
 
 
@@ -80,11 +104,15 @@ class MasterService(rpyc.Service):
         exposed_get_data_servers()  returns list
 
         """
-
+        timestamp = [0]
         file_table = {}  # serialized and back using pickle
         data_servers = []    # list of all data servers
         available_data_servers = []  # list of available data servers
+        servers_timestamps = {}
         replication_factor = 0
+
+
+
 
         # Requires full file path, can
         # TODO handle exception
@@ -124,6 +152,7 @@ class MasterService(rpyc.Service):
             if self.exists(map_path):
                 reduce(operator.getitem, map_path, self.__class__.file_table).update({file_name: ('file', mdate)})
                 print(self.__class__.file_table)
+                self.timestamp[0] = self.timestamp[0] + 1
                 return True
             else:
                 return False
@@ -132,9 +161,11 @@ class MasterService(rpyc.Service):
             map_list = full_path.split('/')
             map_path = map_list[0:-1]
             if self.exists(map_path):
+
                 return True
             else:
                 return False
+
         # Requires full file path
         # TODO handle exception, add request to data servers
         def delete(self, full_path="") -> bool:
@@ -151,6 +182,7 @@ class MasterService(rpyc.Service):
                 # for each in self.__class__.data_servers:
                 #     each.delete_file(obj)
                 print(tmp)
+                self.timestamp[0] = self.timestamp[0] + 1
                 return True
             else:
                 return False
@@ -220,12 +252,14 @@ class MasterService(rpyc.Service):
             :rtype: bool
             """
             if path == [''] or path == ['', '']: # cd 'space' and cd /
+
                 return True
             else:
                 try:
                     tmp = reduce(operator.getitem, path, self.__class__.file_table)
-                    #if type(tmp) is dict: old used only for dir
-                    if type(tmp) is dict or type(tmp) is tuple: #check if the tmp a file or dic to delete it
+
+                    if type(tmp) is dict or type(tmp) is tuple: # check if the tmp a file or dic to delete it
+
                         return True
                     else:
                         return False
