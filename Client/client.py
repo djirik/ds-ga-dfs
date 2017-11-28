@@ -33,6 +33,11 @@ def File_Exist_DS(file_path, data_server): # testing if file is exist on DS
     data_server = con.root.DataServer()
     return data_server.Check_if_exist(file_path)
 
+def rm_DS(file_path, data_server): # testing if file is exist on DS
+    host, port = data_server
+    con = rpyc.connect(host, port=port)
+    data_server = con.root.DataServer()
+    return data_server.delete_file(file_path)
 
 # TODO: write data to disk -> done
 # def get(name_server, filename): add writing to file where dest is file name
@@ -46,6 +51,13 @@ def get(name_server, filename, dest):
     else:
         print("No such file on the DS")
 
+def rm(name_server, filename):
+    if File_Exist_DS(filename,name_server.get_data_servers()[0]):
+        if rm_DS(filename,name_server.get_data_servers()[0]):
+            return True
+    else:
+        print("No such file on the DS")
+        return False
 
 def put(name_server, source, filename):
     # if name_server.write(filename): error if file not exist
@@ -146,7 +158,8 @@ def main():
                                 dir = args[1]
                             else:
                                 dir = full_dir + '/' + args[1]
-                            master.rm(dir)
+                            if rm(master,dir):
+                                master.rm(dir)
                         if args[0] == "size":
                             Size(master,full_dir + '/' + args[1])
                         # Print last operation

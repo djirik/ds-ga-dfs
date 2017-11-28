@@ -172,7 +172,10 @@ class DataService(rpyc.Service):
         # TODO: Handle exceptions
         def exposed_delete_file(self, file_path):
             if os.path.isfile(DATA_DIR + file_path):
-                os.remove(file_path)
+                os.remove(DATA_DIR + file_path)
+                return True
+            else:
+                return False
 
         def get_file_dict(self) -> dict:
             return self.ns_file_dict
