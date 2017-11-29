@@ -15,6 +15,7 @@ def send_to_ds(file_path, data, data_servers, mdate):
     #data_server.put(file_path, mdate, data, data_servers): old, error if there is a dirc on the same name as the file
     if data_server.put(file_path, mdate, data, data_servers): #checking if we can write as file to the DS
         print("sending: " + str(data_servers))
+        return True
     else:
         print("Error, can not write the file to DS")
         return False
@@ -67,6 +68,16 @@ def get(name_server, filename, dest):
             x.write(a)
     else:
         print("No such file on the DS")
+
+
+def rm(name_server, filename):
+    if File_Exist_DS(filename,name_server.get_data_servers()[0]):
+        if rm_DS(filename,name_server.get_data_servers()[0]):
+            return True
+    else:
+        print("No such file on the DS")
+        return False
+
 
 def rmdir(name_server, filename):
     if Dir_Exist_DS(filename,name_server.get_data_servers()[0]):
@@ -206,8 +217,12 @@ def main():
                             master.rmdir(dir_rmdir)
                         elif args[0] == "get":
                             #get(master, args[1]) old without writing to file
-                            dir_get = full_dir + '/' + args[1]
-                            get(master, dir_get, args[2])
+                            if cwd=='':
+                                path= args[1]
+                            else:
+                                path = full_dir + '/' + args[1]
+
+                            get(master, path, args[2])
                         elif args[0] == "put":
                             if cwd == "":
                                 put(master, source=args[1], filename=cwd + args[2])
