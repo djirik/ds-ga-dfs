@@ -23,7 +23,7 @@ def set_conf():
     MasterService.exposed_Master.data_servers.clear()  # clear the old conf
     conf = configparser.ConfigParser()
     conf.read_file(open('dfs.conf'))
-    MasterService.exposed_Master.replication_factor = int(conf.get('master', 'replication_factor'))
+    # MasterService.exposed_Master.replication_factor = int(conf.get('master', 'replication_factor'))
     data_servers = conf.get('master', 'data_servers').split(',')
     for m in data_servers:
         id, host, port = m.split(":")
@@ -60,8 +60,9 @@ def data_polling(data_servers: list):
                 except:
                     pass
 
-            except ConnectionError:
+            except Exception as err:
                 print(str(server) + " is not responding.")
+                # print(err)
         print("Available DS: " + str(MasterService.exposed_Master.available_data_servers))
         # print(MasterService.exposed_Master.timestamp[0])
         # for each in MasterService.exposed_Master.available_data_servers:
