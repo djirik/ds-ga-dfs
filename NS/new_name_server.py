@@ -152,7 +152,7 @@ class MasterService(rpyc.Service):
             if self.exists(map_path):
                 reduce(operator.getitem, map_path, self.__class__.file_table).update({file_name: ('file', mdate)})
                 pickle.dump(MasterService.exposed_Master.file_table, open('fs.img', 'wb'))
-                print(self.__class__.file_table)
+                print("Creation: " + full_path, "Current state: ", self.__class__.file_table)
                 self.timestamp[0] = self.timestamp[0] + 1
                 return True
             else:
@@ -183,7 +183,7 @@ class MasterService(rpyc.Service):
                 pickle.dump(MasterService.exposed_Master.file_table, open('fs.img', 'wb'))
                 # for each in self.__class__.data_servers:
                 #     each.delete_file(obj)
-                print(tmp)
+                print("Deletion: ", full_path, "Current state: ", self.__class__.file_table)
                 # self.timestamp[0] = self.timestamp[0] + 1
                 return True
             else:
@@ -200,7 +200,8 @@ class MasterService(rpyc.Service):
             else:
                 reduce(operator.getitem, map_list, self.__class__.file_table).update(dir_to_add)
                 pickle.dump(MasterService.exposed_Master.file_table, open('fs.img', 'wb'))
-            print(self.__class__.file_table)
+
+            print("New dir: " + dir_name, "Path: " + path, "Current state: ", self.__class__.file_table)
 
         # def exposed_touch(self, file_name: str, path=""):
         #     map_list = path.split('/')
