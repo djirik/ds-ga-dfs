@@ -14,7 +14,7 @@ def send_to_ds(file_path, data, data_servers, mdate):
     data_server = con.root.DataServer()
     #data_server.put(file_path, mdate, data, data_servers): old, error if there is a dirc on the same name as the file
     if data_server.put(file_path, mdate, data, data_servers): #checking if we can write as file to the DS
-        print("sending: " + str(data_servers))
+        print("sending: " + str(host))
         return True
     else:
         print("Error, can not write the file to DS")
@@ -158,9 +158,9 @@ def main():
                     try:
                         if args[0] == "touch":
                             if cwd == "":
-                                touch(master,args[1], args[2:])
+                                touch(master, args[1], args[2:])
                             else:
-                                touch(master,full_dir + '/' + args[1], args[2])
+                                touch(master, full_dir + '/' + args[1], args[2:])
                         elif args[0] == "ls":
                             Files_List=['Files']
                             Dir_List=['Directories']
@@ -249,9 +249,9 @@ def main():
                         elif args[0] == "exit":
                             logging.warning('Client is closed')
                             sys.exit()
-                    except IndexError:
+                    except IndexError as err:
                         logging.warning('Wrong operation arguments')
-                        print('Wrong operation arguments')
+                        print(err)
                 except Exception as err:
                     print(err)
                     break

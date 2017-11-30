@@ -285,5 +285,6 @@ if __name__ == "__main__":
 
     # Start server
     t = ThreadedServer(MasterService, port=int(sys.argv[1]))
+    print(t.host)
     t.start()
 

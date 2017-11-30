@@ -211,4 +211,5 @@ if __name__ == "__main__":
     updater.start()
 
     t = ThreadedServer(DataService, port=int(sys.argv[1]))
+
     t.start()
