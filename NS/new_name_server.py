@@ -279,6 +279,6 @@ if __name__ == "__main__":
     signal.signal(signal.SIGTERM, int_handler)
 
     # Start server
-    t = ThreadedServer(MasterService, port=2131)
+    t = ThreadedServer(MasterService, port=int(sys.argv[1]))
     t.start()
 

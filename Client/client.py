@@ -142,7 +142,7 @@ def main():
     logging.warning('Client is started')
     while True:
         try:
-            con = rpyc.connect("localhost", port=2131)
+            con = rpyc.connect(sys.argv[1], port=int(sys.argv[2]))
             master = con.root.Master()
             while True:
                 try:

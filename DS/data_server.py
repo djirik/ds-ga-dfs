@@ -51,7 +51,7 @@ def update(selfport):
     while True:
         while True:
             try:
-                conn = rpyc.connect('localhost', 2131)
+                conn = rpyc.connect(sys.argv[2], port=int(sys.argv[3]))
                 ns = conn.root.Master()
                 DataService.exposed_DataServer.ns_file_dict = ns.read()
                 break
