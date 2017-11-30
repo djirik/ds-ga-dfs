@@ -48,7 +48,7 @@ def data_polling(data_servers: list):
                 init_data = File.readlines()  # reread the changed data
             print("Config file has been changed, Reloading configuration")
             set_conf()  # calling the conf function again to update the list of DS
-        prev_avail = len(MasterService.exposed_Master.available_data_servers)
+        # prev_avail = len(MasterService.exposed_Master.available_data_servers)
         MasterService.exposed_Master.available_data_servers = []
         for server in data_servers:
             try:
@@ -151,6 +151,7 @@ class MasterService(rpyc.Service):
 
             if self.exists(map_path):
                 reduce(operator.getitem, map_path, self.__class__.file_table).update({file_name: ('file', mdate)})
+                pickle.dump(MasterService.exposed_Master.file_table, open('fs.img', 'wb'))
                 print(self.__class__.file_table)
                 self.timestamp[0] = self.timestamp[0] + 1
                 return True
@@ -179,10 +180,11 @@ class MasterService(rpyc.Service):
             obj = map_list[-1]
             if self.exists(map_list):
                 tmp = reduce(operator.getitem, map_list[0:-1], self.__class__.file_table).pop(obj)
+                pickle.dump(MasterService.exposed_Master.file_table, open('fs.img', 'wb'))
                 # for each in self.__class__.data_servers:
                 #     each.delete_file(obj)
                 print(tmp)
-                self.timestamp[0] = self.timestamp[0] + 1
+                # self.timestamp[0] = self.timestamp[0] + 1
                 return True
             else:
                 return False
@@ -197,6 +199,7 @@ class MasterService(rpyc.Service):
                 self.__class__.file_table.update(dir_to_add)
             else:
                 reduce(operator.getitem, map_list, self.__class__.file_table).update(dir_to_add)
+                pickle.dump(MasterService.exposed_Master.file_table, open('fs.img', 'wb'))
             print(self.__class__.file_table)
 
         # def exposed_touch(self, file_name: str, path=""):
